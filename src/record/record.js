@@ -21,6 +21,9 @@ var jsonPath = require( './json-path' ),
  * @constructor
  */
 var Record = function( name, recordOptions, connection, options, client ) {
+
+	console.log('recordOptions', recordOptions);
+
 	if ( typeof name !== 'string' || name.length === 0 ) {
 		throw new Error( 'invalid argument name' );
 	}
@@ -34,7 +37,11 @@ var Record = function( name, recordOptions, connection, options, client ) {
 	this.isReady = false;
 	this.isDestroyed = false;
 	this.hasProvider = false;
+
+	// ADDED
 	this._$data = Object.create( null );
+	this._model = recordOptions.model;
+
 	this.version = null;
 	this._eventEmitter = new EventEmitter();
 	this._queuedMethodCalls = [];
@@ -105,6 +112,7 @@ Record.prototype.get = function( path ) {
  * @returns {void}
  */
 Record.prototype.set = function( pathOrData, data ) {
+	console.log('Record.prototype.set pathOrData, data', pathOrData, data);
 	if( arguments.length === 1 && typeof pathOrData !== 'object' ) {
 		throw new Error( 'invalid argument data' );
 	}
@@ -124,15 +132,20 @@ Record.prototype.set = function( pathOrData, data ) {
 	var path = arguments.length === 1 ? undefined : pathOrData;
 	data = path ? data : pathOrData;
 
-	var oldValue = this._$data;
-	var newValue = jsonPath.set( oldValue, path, data, this._options.recordDeepCopy );
-
-	if ( oldValue === newValue ) {
-		return this;
-	}
-
 	this._sendUpdate( path, data );
-	this._applyChange( newValue );
+
+	if (!this._model) {
+		/*
+		var oldValue = this._$data;
+		var newValue = jsonPath.set( oldValue, path, data, this._options.recordDeepCopy );
+
+		if ( oldValue === newValue ) {
+			return this;
+		}
+		*/
+		this._applyChange( path, data, this._options.recordDeepCopy );
+		//this._applyChange( newValue );
+	}
 	return this;
 };
 
@@ -276,6 +289,7 @@ Record.prototype.whenReady = function( callback ) {
  * @returns {void}
  */
 Record.prototype._$onMessage = function( message ) {
+	console.log('Record::_$onMessage', message);
 	if( message.action === C.ACTIONS.READ ) {
 		if( this.version === null ) {
 			clearTimeout( this._readTimeout );
@@ -356,21 +370,27 @@ Record.prototype._sendUpdate = function ( path, data ) {
  * @returns {void}
  */
 Record.prototype._onRecordRecovered = function( remoteVersion, remoteData, error, data ) {
+	console.log('_onRecordRecovered remoteVersion, remoteData, error, data', remoteVersion, remoteData, error, data)
 	if( !error ) {
 		this.version = remoteVersion;
 
+	  // TODO Check if shallow copy in jsonPath.set makes this different to other calls to _applyChange
+		/*
 		var oldValue = this._$data;
 		var newValue = jsonPath.set( oldValue, undefined, data, false );
 
-/*		if( utils.deepEquals( newValue, remoteData ) ) {
-			return;
-		}*/
+  		//if( utils.deepEquals( newValue, remoteData ) ) {
+			//return;
+		  //}
+
 		if ( oldValue === newValue ) {
 			return;
 		}
+		*/
 
 		this._sendUpdate( undefined, data );
-		this._applyChange( newValue );
+		this._applyChange( undefined, data, false );
+		//this._applyChange( newValue );
 	} else {
 		this.emit( 'error', C.EVENT.VERSION_EXISTS, 'received update for ' + remoteVersion + ' but version is ' + this.version );
 	}
@@ -412,6 +432,9 @@ Record.prototype._processAckMessage = function( message ) {
  * @returns {void}
  */
 Record.prototype._applyUpdate = function( message ) {
+
+	console.log('_applyUpdate message', message);
+
 	var version = parseInt( message.data[ 1 ], 10 );
 	var data;
 
@@ -420,6 +443,8 @@ Record.prototype._applyUpdate = function( message ) {
 	} else {
 		data = JSON.parse( message.data[ 2 ] );
 	}
+
+	console.log('_applyUpdate data', data);
 
 	if( this.version === null ) {
 		this.version = version;
@@ -438,7 +463,8 @@ Record.prototype._applyUpdate = function( message ) {
 	}
 
 	this.version = version;
-	this._applyChange( jsonPath.set( this._$data, message.action === C.ACTIONS.PATCH ? message.data[ 2 ] : undefined, data ) );
+	this._applyChange( message.action === C.ACTIONS.PATCH ? message.data[ 2 ] : undefined, data, undefined );
+	//this._applyChange( jsonPath.set( this._$data, message.action === C.ACTIONS.PATCH ? message.data[ 2 ] : undefined, data ) );
 };
 
 /**
@@ -450,8 +476,10 @@ Record.prototype._applyUpdate = function( message ) {
  * @returns {void}
  */
 Record.prototype._onRead = function( message ) {
+	console.log('_onRead message', message);
 	this.version = parseInt( message.data[ 1 ], 10 );
-	this._applyChange( jsonPath.set( this._$data, undefined, JSON.parse( message.data[ 2 ] ) ) );
+	this._applyChange( undefined, JSON.parse( message.data[ 2 ] ), undefined );
+	//this._applyChange( jsonPath.set( this._$data, undefined, JSON.parse( message.data[ 2 ] ) ) );
 	this._setReady();
 };
 
@@ -489,26 +517,39 @@ Record.prototype._setReady = function() {
  * @private
  * @returns {void}
  */
-Record.prototype._applyChange = function( newData ) {
+Record.prototype._applyChange = function( path, change, deepCopy ) {
+//Record.prototype._applyChange = function( newData ) {
+	console.log('_applyChange path change deepCopy', path, change, deepCopy);
 	if ( this.isDestroyed ) {
 		return;
 	}
 
-	var oldData = this._$data;
-	this._$data = newData;
+  if (this._model) {
+			if (path) {
+				this._model.dsDeliver(path, change);
+			} else {
+				this._model.dsDeliver(change);
+			}
+	} else {
 
-	if ( !this._eventEmitter._callbacks ) {
-		return;
-	}
+		var newData = jsonPath.set( this._$data, path, change, deepCopy );
 
-	var paths = Object.keys( this._eventEmitter._callbacks );
+		var oldData = this._$data;
+		this._$data = newData;
 
-	for ( var i = 0; i < paths.length; i++ ) {
-		var newValue = jsonPath.get( newData, paths[ i ], false );
-		var oldValue = jsonPath.get( oldData, paths[ i ], false );
+		if ( !this._eventEmitter._callbacks ) {
+			return;
+		}
 
-		if( newValue !== oldValue ) {
-			this._eventEmitter.emit( paths[ i ], this.get( paths[ i ] ) );
+		var paths = Object.keys( this._eventEmitter._callbacks );
+
+		for ( var i = 0; i < paths.length; i++ ) {
+			var newValue = jsonPath.get( newData, paths[ i ], false );
+			var oldValue = jsonPath.get( oldData, paths[ i ], false );
+
+			if( newValue !== oldValue ) {
+				this._eventEmitter.emit( paths[ i ], this.get( paths[ i ] ) );
+			}
 		}
 	}
 };

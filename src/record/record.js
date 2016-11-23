@@ -22,7 +22,7 @@ var jsonPath = require( './json-path' ),
  */
 var Record = function( name, recordOptions, connection, options, client ) {
 
-	console.log('recordOptions', recordOptions);
+	//console.log('recordOptions', recordOptions);
 
 	if ( typeof name !== 'string' || name.length === 0 ) {
 		throw new Error( 'invalid argument name' );
@@ -112,7 +112,7 @@ Record.prototype.get = function( path ) {
  * @returns {void}
  */
 Record.prototype.set = function( pathOrData, data ) {
-	console.log('Record.prototype.set pathOrData, data', pathOrData, data);
+	//console.log('Record.prototype.set pathOrData, data', pathOrData, data);
 	if( arguments.length === 1 && typeof pathOrData !== 'object' ) {
 		throw new Error( 'invalid argument data' );
 	}
@@ -289,7 +289,7 @@ Record.prototype.whenReady = function( callback ) {
  * @returns {void}
  */
 Record.prototype._$onMessage = function( message ) {
-	console.log('Record::_$onMessage', message);
+	//console.log('Record::_$onMessage', message);
 	if( message.action === C.ACTIONS.READ ) {
 		if( this.version === null ) {
 			clearTimeout( this._readTimeout );
@@ -433,7 +433,7 @@ Record.prototype._processAckMessage = function( message ) {
  */
 Record.prototype._applyUpdate = function( message ) {
 
-	console.log('_applyUpdate message', message);
+	//console.log('_applyUpdate message', message);
 
 	var version = parseInt( message.data[ 1 ], 10 );
 	var data;
@@ -444,7 +444,7 @@ Record.prototype._applyUpdate = function( message ) {
 		data = JSON.parse( message.data[ 2 ] );
 	}
 
-	console.log('_applyUpdate data', data);
+	//console.log('_applyUpdate data', data);
 
 	if( this.version === null ) {
 		this.version = version;
@@ -476,7 +476,7 @@ Record.prototype._applyUpdate = function( message ) {
  * @returns {void}
  */
 Record.prototype._onRead = function( message ) {
-	console.log('_onRead message', message);
+	//console.log('_onRead message', message);
 	this.version = parseInt( message.data[ 1 ], 10 );
 	this._applyChange( undefined, JSON.parse( message.data[ 2 ] ), undefined );
 	//this._applyChange( jsonPath.set( this._$data, undefined, JSON.parse( message.data[ 2 ] ) ) );
@@ -519,7 +519,7 @@ Record.prototype._setReady = function() {
  */
 Record.prototype._applyChange = function( path, change, deepCopy ) {
 //Record.prototype._applyChange = function( newData ) {
-	console.log('_applyChange path change deepCopy', path, change, deepCopy);
+	//console.log('_applyChange path change deepCopy', path, change, deepCopy);
 	if ( this.isDestroyed ) {
 		return;
 	}

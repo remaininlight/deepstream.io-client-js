@@ -95,6 +95,7 @@ List.prototype.setEntries = function( entries ) {
 		this._queuedMethods.push( this.setEntries.bind( this, entries ) );
 	} else {
 		this._beforeChange();
+		//console.log('list setEntries', entries);
 		this._record.set( entries );
 		this._afterChange();
 	}
@@ -253,6 +254,7 @@ List.prototype._onDiscard = function() {
  * @returns {void}
  */
 List.prototype._applyUpdate = function( message ) {
+	//console.log('list _applyUpdate message', message);
 	if( message.action === C.ACTIONS.PATCH ) {
 		throw new Error( 'PATCH is not supported for Lists' );
 	}
@@ -262,6 +264,7 @@ List.prototype._applyUpdate = function( message ) {
 	}
 
 	this._beforeChange();
+	//console.log('call record _applyUpdate message', message);
 	Record.prototype._applyUpdate.call( this._record, message );
 	this._afterChange();
 };

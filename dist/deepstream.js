@@ -6381,6 +6381,7 @@ List.prototype.setEntries = function( entries ) {
 		this._queuedMethods.push( this.setEntries.bind( this, entries ) );
 	} else {
 		this._beforeChange();
+		//console.log('list setEntries', entries);
 		this._record.set( entries );
 		this._afterChange();
 	}
@@ -6539,6 +6540,7 @@ List.prototype._onDiscard = function() {
  * @returns {void}
  */
 List.prototype._applyUpdate = function( message ) {
+	//console.log('list _applyUpdate message', message);
 	if( message.action === C.ACTIONS.PATCH ) {
 		throw new Error( 'PATCH is not supported for Lists' );
 	}
@@ -6548,6 +6550,7 @@ List.prototype._applyUpdate = function( message ) {
 	}
 
 	this._beforeChange();
+	//console.log('call record _applyUpdate message', message);
 	Record.prototype._applyUpdate.call( this._record, message );
 	this._afterChange();
 };
@@ -7038,7 +7041,7 @@ var jsonPath = _dereq_( './json-path' ),
  */
 var Record = function( name, recordOptions, connection, options, client ) {
 
-	console.log('recordOptions', recordOptions);
+	//console.log('recordOptions', recordOptions);
 
 	if ( typeof name !== 'string' || name.length === 0 ) {
 		throw new Error( 'invalid argument name' );
@@ -7128,7 +7131,7 @@ Record.prototype.get = function( path ) {
  * @returns {void}
  */
 Record.prototype.set = function( pathOrData, data ) {
-	console.log('Record.prototype.set pathOrData, data', pathOrData, data);
+	//console.log('Record.prototype.set pathOrData, data', pathOrData, data);
 	if( arguments.length === 1 && typeof pathOrData !== 'object' ) {
 		throw new Error( 'invalid argument data' );
 	}
@@ -7356,6 +7359,7 @@ Record.prototype._recoverRecord = function( remoteVersion, remoteData, message )
 };
 
 Record.prototype._sendUpdate = function ( path, data ) {
+	console.log('_sendUpdate path, data', path, data);
 	this.version++;
 	if( !path ) {
 		this._connection.sendMsg( C.TOPIC.RECORD, C.ACTIONS.UPDATE, [
@@ -7460,7 +7464,7 @@ Record.prototype._applyUpdate = function( message ) {
 		data = JSON.parse( message.data[ 2 ] );
 	}
 
-	console.log('_applyUpdate data', data);
+	//console.log('_applyUpdate data', data);
 
 	if( this.version === null ) {
 		this.version = version;
@@ -7542,9 +7546,9 @@ Record.prototype._applyChange = function( path, change, deepCopy ) {
 
   if (this._model) {
 			if (path) {
-				this._model.dsDeliver(path, change);
+				this._model.deliverToModel(path, change);
 			} else {
-				this._model.dsDeliver(change);
+				this._model.deliverToModel(change);
 			}
 	} else {
 

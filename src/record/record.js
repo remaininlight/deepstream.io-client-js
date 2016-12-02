@@ -289,7 +289,7 @@ Record.prototype.whenReady = function( callback ) {
  * @returns {void}
  */
 Record.prototype._$onMessage = function( message ) {
-	//console.log('Record::_$onMessage', message);
+	console.log('Record::_$onMessage', message);
 	if( message.action === C.ACTIONS.READ ) {
 		if( this.version === null ) {
 			clearTimeout( this._readTimeout );
@@ -340,6 +340,7 @@ Record.prototype._recoverRecord = function( remoteVersion, remoteData, message )
 };
 
 Record.prototype._sendUpdate = function ( path, data ) {
+	console.log('_sendUpdate path, data', path, data);
 	this.version++;
 	if( !path ) {
 		this._connection.sendMsg( C.TOPIC.RECORD, C.ACTIONS.UPDATE, [
@@ -433,7 +434,7 @@ Record.prototype._processAckMessage = function( message ) {
  */
 Record.prototype._applyUpdate = function( message ) {
 
-	//console.log('_applyUpdate message', message);
+	console.log('_applyUpdate message', message);
 
 	var version = parseInt( message.data[ 1 ], 10 );
 	var data;
@@ -476,7 +477,7 @@ Record.prototype._applyUpdate = function( message ) {
  * @returns {void}
  */
 Record.prototype._onRead = function( message ) {
-	//console.log('_onRead message', message);
+	console.log('_onRead message', message);
 	this.version = parseInt( message.data[ 1 ], 10 );
 	this._applyChange( undefined, JSON.parse( message.data[ 2 ] ), undefined );
 	//this._applyChange( jsonPath.set( this._$data, undefined, JSON.parse( message.data[ 2 ] ) ) );
@@ -519,16 +520,16 @@ Record.prototype._setReady = function() {
  */
 Record.prototype._applyChange = function( path, change, deepCopy ) {
 //Record.prototype._applyChange = function( newData ) {
-	//console.log('_applyChange path change deepCopy', path, change, deepCopy);
+	console.log('_applyChange path change deepCopy', path, change, deepCopy);
 	if ( this.isDestroyed ) {
 		return;
 	}
 
   if (this._model) {
 			if (path) {
-				this._model.dsDeliver(path, change);
+				this._model.deliverToModel(path, change);
 			} else {
-				this._model.dsDeliver(change);
+				this._model.deliverToModel(change);
 			}
 	} else {
 

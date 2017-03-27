@@ -7091,6 +7091,7 @@ EventEmitter( Record.prototype );
  * @returns {void}
  */
 Record.prototype.setMergeStrategy = function( mergeStrategy ) {
+	console.log('Record.prototype.setMergeStrategy ', mergeStrategy );
 	if( typeof mergeStrategy === 'function' ) {
 		this._mergeStrategy = mergeStrategy;
 	} else {
@@ -7308,7 +7309,7 @@ Record.prototype.whenReady = function( callback ) {
  * @returns {void}
  */
 Record.prototype._$onMessage = function( message ) {
-	console.log('Record::_$onMessage', message);
+	//console.log('Record::_$onMessage', message);
 	if( message.action === C.ACTIONS.READ ) {
 		if( this.version === null ) {
 			clearTimeout( this._readTimeout );
@@ -7349,6 +7350,7 @@ Record.prototype._$onMessage = function( message ) {
  * @returns {void}
  */
 Record.prototype._recoverRecord = function( remoteVersion, remoteData, message ) {
+	console.log('Record.prototype._recoverRecord remoteVersion, remoteData, message', remoteVersion, remoteData, message)
 	message.processedError = true;
 	if( this._mergeStrategy ) {
 		this._mergeStrategy( this, remoteData, remoteVersion, this._onRecordRecovered.bind( this, remoteVersion, remoteData ) );
@@ -7539,7 +7541,7 @@ Record.prototype._setReady = function() {
  */
 Record.prototype._applyChange = function( path, change, deepCopy ) {
 //Record.prototype._applyChange = function( newData ) {
-	console.log('_applyChange path change deepCopy', path, change, deepCopy);
+	//console.log('_applyChange path change deepCopy', path, change, deepCopy);
 	if ( this.isDestroyed ) {
 		return;
 	}

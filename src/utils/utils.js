@@ -25,8 +25,7 @@ const OBJECT = 'object'
  * @public
  * @type {Boolean}
  */
-exports.isNode = typeof process !== 'undefined' && process.toString() === 'object'
-//exports.isNode = typeof process !== 'undefined' && process.toString() === '[object process]'
+exports.isNode = typeof process !== 'undefined' && process.toString() === '[object process]'
 
 /**
  * Provides as soon as possible async execution in a cross

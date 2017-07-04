@@ -6338,7 +6338,9 @@ var OBJECT = 'object';
  * @public
  * @type {Boolean}
  */
-exports.isNode = typeof process !== 'undefined' && process.toString() === '[object process]';
+// Changed node test for running with babel
+exports.isNode = typeof process !== 'undefined' && process.toString() === '[object Object]';
+//exports.isNode = typeof process !== 'undefined' && process.toString() === '[object process]'
 
 /**
  * Provides as soon as possible async execution in a cross

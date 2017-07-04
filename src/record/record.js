@@ -38,6 +38,11 @@ const Record = function (name, recordOptions, connection, options, client) {
   this.isDestroyed = false
   this.hasProvider = false
   this._$data = Object.create(null)
+    
+  // ADDED
+  this._$data = Object.create( null );
+  this._model = recordOptions.model;
+
   this.version = null
   this._eventEmitter = new EventEmitter()
   this._queuedMethodCalls = []
@@ -69,6 +74,7 @@ const Record = function (name, recordOptions, connection, options, client) {
 
 EventEmitter(Record.prototype) // eslint-disable-line
 
+
 /**
  * Set a merge strategy to resolve any merge conflicts that may occur due
  * to offline work or write conflicts. The function will be called with the
@@ -88,7 +94,6 @@ Record.prototype.setMergeStrategy = function (mergeStrategy) {
     throw new Error('Invalid merge strategy: Must be a Function')
   }
 }
-
 
 /**
  * Returns a copy of either the entire dataset of the record
@@ -190,7 +195,9 @@ Record.prototype.set = function (pathOrData, dataOrCallback, callback) {
     }
   }
   this._sendUpdate(path, data, config)
-  this._applyChange(newValue)
+  if (!this._model)
+      this._applyChange( path, data, this._options.recordDeepCopy );
+  //this._applyChange(newValue)
   return this
 }
 
@@ -452,10 +459,13 @@ Record.prototype._onRecordRecovered = function (remoteVersion, remoteData, messa
       return
     }
 
-    const newValue = jsonPath.set(oldValue, undefined, data, false)
+    //const newValue = jsonPath.set(oldValue, undefined, data, false)
 
+    /*
+    // TODO Uncomment and check
     if (utils.deepEquals(data, remoteData)) {
-      this._applyChange(data)
+      this._applyChange( undefined, data, false );
+      //this._applyChange(data)
 
       const callback = this._writeCallbacks[remoteVersion]
       if (callback !== undefined) {
@@ -464,6 +474,7 @@ Record.prototype._onRecordRecovered = function (remoteVersion, remoteData, messa
       }
       return
     }
+    */
 
     const config = message.data[4]
     if (config && JSON.parse(config).writeSuccess) {
@@ -472,7 +483,8 @@ Record.prototype._onRecordRecovered = function (remoteVersion, remoteData, messa
       this._setUpCallback(this.version, callback)
     }
     this._sendUpdate(undefined, data, config)
-    this._applyChange(newValue)
+    this._applyChange( undefined, data, false );
+    //this._applyChange(newValue)
   } else {
     this.emit(
       'error',
@@ -538,12 +550,15 @@ Record.prototype._applyUpdate = function (message) {
   }
 
   this.version = version
+  this._applyChange( message.action === C.ACTIONS.PATCH ? message.data[ 2 ] : undefined, data, undefined );
+  /*
   this._applyChange(
     jsonPath.set(
       this._$data,
       message.action === C.ACTIONS.PATCH ? message.data[2] : undefined, data
     )
   )
+  */
 }
 
 /**
@@ -554,11 +569,14 @@ Record.prototype._applyUpdate = function (message) {
  * @private
  * @returns {void}
  */
-Record.prototype._onRead = function (message) {
-  this.version = parseInt(message.data[1], 10)
-  this._applyChange(jsonPath.set(this._$data, undefined, JSON.parse(message.data[2])))
-  this._setReady()
-}
+
+Record.prototype._onRead = function( message ) {
+	console.log('_onRead message', message);
+	this.version = parseInt( message.data[ 1 ], 10 );
+	this._applyChange( undefined, JSON.parse( message.data[ 2 ] ), undefined );
+	//this._applyChange( jsonPath.set( this._$data, undefined, JSON.parse( message.data[ 2 ] ) ) );
+	this._setReady();
+};
 
 /**
  * Invokes method calls that where queued while the record wasn't ready
@@ -599,24 +617,37 @@ Record.prototype._sendRead = function () {
  * @private
  * @returns {void}
  */
-Record.prototype._applyChange = function (newData) {
-  if (this.isDestroyed) {
-    return
-  }
+Record.prototype._applyChange = function( path, change, deepCopy ) {
+//Record.prototype._applyChange = function( newData ) {
+	//console.log('_applyChange path change deepCopy', path, change, deepCopy);
+	if ( this.isDestroyed ) {
+		return;
+	}
 
-  const oldData = this._$data
-  this._$data = newData
+    if (this._model) {
+        if (path) {
+            this._model.deliverToModel(path, change);
+        } else {
+            this._model.deliverToModel(change);
+        }
+    } else {
 
-  const paths = this._eventEmitter.eventNames()
-  for (let i = 0; i < paths.length; i++) {
-    const newValue = jsonPath.get(newData, paths[i], false)
-    const oldValue = jsonPath.get(oldData, paths[i], false)
+		var newData = jsonPath.set( this._$data, path, change, deepCopy );
 
-    if (newValue !== oldValue) {
-      this._eventEmitter.emit(paths[i], this.get(paths[i]))
-    }
-  }
-}
+        const oldData = this._$data
+        this._$data = newData
+
+        const paths = this._eventEmitter.eventNames()
+        for (let i = 0; i < paths.length; i++) {
+            const newValue = jsonPath.get(newData, paths[i], false)
+            const oldValue = jsonPath.get(oldData, paths[i], false)
+
+            if (newValue !== oldValue) {
+              this._eventEmitter.emit(paths[i], this.get(paths[i]))
+            }
+        }
+	}
+};
 
 /**
  * Creates a map based on the types of the provided arguments

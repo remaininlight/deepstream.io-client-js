@@ -266,10 +266,10 @@ List.prototype._applyUpdate = function (message) {
     message.data[2] = '[]'
   }
 
-  this._beforeChange()
-  Record.prototype._applyUpdate.call(this._record, message)
-  this._afterChange()
-}
+	this._beforeChange();
+	Record.prototype._applyUpdate.call( this._record, message );
+	this._afterChange();
+};
 
 /**
  * Validates that the index provided is within the current set of entries.

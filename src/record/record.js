@@ -40,7 +40,6 @@ const Record = function (name, recordOptions, connection, options, client) {
   this._$data = Object.create(null)
     
   // ADDED
-  this._$data = Object.create( null );
   this._model = recordOptions.model;
 
   this.version = null
@@ -354,6 +353,7 @@ Record.prototype.whenReady = function (callback) {
  * @returns {void}
  */
 Record.prototype._$onMessage = function (message) {
+  //console.log('Record.prototype._$onMessage', message);
   if (message.action === C.ACTIONS.READ) {
     if (this.version === null) {
       this._ackTimeoutRegistry.clear(message)
@@ -449,6 +449,7 @@ Record.prototype._sendUpdate = function (path, data, config) {
  * @returns {void}
  */
 Record.prototype._onRecordRecovered = function (remoteVersion, remoteData, message, error, data) {
+  console.log('Record.prototype._onRecordRecovered remoteVersion, remoteData, message, error, data', remoteVersion, remoteData, message, error, data);
   if (!error) {
     const oldVersion = this.version
     this.version = remoteVersion
@@ -526,6 +527,7 @@ Record.prototype._processAckMessage = function (message) {
  * @returns {void}
  */
 Record.prototype._applyUpdate = function (message) {
+  //console.log('Record.prototype._applyUpdate', message);
   const version = parseInt(message.data[1], 10)
   let data
   if (message.action === C.ACTIONS.PATCH) {
@@ -571,7 +573,7 @@ Record.prototype._applyUpdate = function (message) {
  */
 
 Record.prototype._onRead = function( message ) {
-	console.log('_onRead message', message);
+	//console.log('_onRead message', message);
 	this.version = parseInt( message.data[ 1 ], 10 );
 	this._applyChange( undefined, JSON.parse( message.data[ 2 ] ), undefined );
 	//this._applyChange( jsonPath.set( this._$data, undefined, JSON.parse( message.data[ 2 ] ) ) );

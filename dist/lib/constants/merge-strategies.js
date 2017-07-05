@@ -7,7 +7,6 @@ module.exports = {
   REMOTE_WINS: function REMOTE_WINS(record, remoteValue, remoteVersion, callback) {
     callback(null, remoteValue);
   },
-
   /**
   *  Choose the local state over the server's
   **/

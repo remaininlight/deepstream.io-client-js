@@ -1,7 +1,5 @@
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 var utils = require('../utils/utils');
 
 var PARTS_REG_EXP = /([^.[\]\s]+)/g;
@@ -21,7 +19,7 @@ module.exports.get = function (data, path, deepCopy) {
     if (value === undefined) {
       return undefined;
     }
-    if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) !== 'object') {
+    if (typeof value !== 'object') {
       throw new Error('invalid data or path');
     }
     value = value[tokens[i]];
@@ -79,12 +77,12 @@ module.exports.set = function (data, path, value, deepCopy) {
  * @return {Mixed}
  */
 function patch(oldValue, newValue, deepCopy) {
-  var i = void 0;
-  var j = void 0;
+  var i = undefined;
+  var j = undefined;
   if (oldValue === null || newValue === null) {
     return newValue;
   } else if (Array.isArray(oldValue) && Array.isArray(newValue)) {
-    var arr = void 0;
+    var arr = undefined;
     for (i = 0; i < newValue.length; i++) {
       var value = patch(oldValue[i], newValue[i], false);
       if (!arr) {
@@ -101,13 +99,13 @@ function patch(oldValue, newValue, deepCopy) {
     arr = arr && deepCopy !== false ? utils.deepCopy(arr) : arr;
     arr = arr || (oldValue.length === newValue.length ? oldValue : newValue);
     return arr;
-  } else if (!Array.isArray(newValue) && (typeof oldValue === 'undefined' ? 'undefined' : _typeof(oldValue)) === 'object' && (typeof newValue === 'undefined' ? 'undefined' : _typeof(newValue)) === 'object') {
-    var obj = void 0;
+  } else if (!Array.isArray(newValue) && typeof oldValue === 'object' && typeof newValue === 'object') {
+    var obj = undefined;
     var props = Object.keys(newValue);
     for (i = 0; i < props.length; i++) {
-      var _value = patch(oldValue[props[i]], newValue[props[i]], false);
+      var value = patch(oldValue[props[i]], newValue[props[i]], false);
       if (!obj) {
-        if (_value === oldValue[props[i]]) {
+        if (value === oldValue[props[i]]) {
           continue;
         }
         obj = Object.create(null);

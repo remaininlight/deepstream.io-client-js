@@ -91,7 +91,7 @@ AnonymousRecord.prototype.subscribe = function () {
 AnonymousRecord.prototype.unsubscribe = function () {
   var parameters = Record.prototype._normalizeArguments(arguments);
   var subscriptions = [];
-  var i = void 0;
+  var i = undefined;
 
   for (i = 0; i < this._subscriptions.length; i++) {
     if (this._subscriptions[i].path !== parameters.path || this._subscriptions[i].callback !== parameters.callback) {
@@ -122,7 +122,7 @@ AnonymousRecord.prototype.setName = function (recordName) {
 
   this.name = recordName;
 
-  var i = void 0;
+  var i = undefined;
 
   if (this._record !== null && !this._record.isDestroyed) {
     for (i = 0; i < this._subscriptions.length; i++) {
@@ -170,7 +170,7 @@ AnonymousRecord.prototype._callMethodOnRecord = function (methodName) {
   }
 
   if (typeof this._record[methodName] !== 'function') {
-    throw new Error(methodName + ' is not a method on the record');
+    throw new Error('' + methodName + ' is not a method on the record');
   }
 
   var args = Array.prototype.slice.call(arguments, 1);

@@ -1,7 +1,5 @@
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 var Record = require('./record');
 var AnonymousRecord = require('./anonymous-record');
 var List = require('./list');
@@ -208,9 +206,9 @@ RecordHandler.prototype.has = function (name, callback) {
  *                            write
  */
 RecordHandler.prototype.setData = function (recordName, pathOrData, dataOrCallback, callback) {
-  var path = void 0;
-  var data = void 0;
-  var cb = void 0;
+  var path = undefined;
+  var data = undefined;
+  var cb = undefined;
   var valid = false;
 
   if (arguments.length === 4) {
@@ -225,14 +223,14 @@ RecordHandler.prototype.setData = function (recordName, pathOrData, dataOrCallba
       path = pathOrData;
       data = dataOrCallback;
       valid = true;
-    } else if ((typeof pathOrData === 'undefined' ? 'undefined' : _typeof(pathOrData)) === 'object' && typeof dataOrCallback === 'function') {
+    } else if (typeof pathOrData === 'object' && typeof dataOrCallback === 'function') {
       // setData(recordName, data, callback)
       path = null;
       data = pathOrData;
       cb = dataOrCallback;
       valid = true;
     }
-  } else if (arguments.length === 2 && (typeof pathOrData === 'undefined' ? 'undefined' : _typeof(pathOrData)) === 'object') {
+  } else if (arguments.length === 2 && typeof pathOrData === 'object') {
     // setData(recordName, data)
     data = pathOrData;
     valid = true;
@@ -275,9 +273,9 @@ RecordHandler.prototype.setData = function (recordName, pathOrData, dataOrCallba
  * @returns {void}
  */
 RecordHandler.prototype._$handle = function (message) {
-  var name = void 0;
+  var name = undefined;
 
-  if (message.action === C.ACTIONS.ERROR && message.data[0] !== C.EVENT.VERSION_EXISTS && message.data[0] !== C.ACTIONS.SNAPSHOT && message.data[0] !== C.ACTIONS.HAS && message.data[0] !== C.EVENT.MESSAGE_DENIED) {
+  if (message.action === C.ACTIONS.ERROR && (message.data[0] !== C.EVENT.VERSION_EXISTS && message.data[0] !== C.ACTIONS.SNAPSHOT && message.data[0] !== C.ACTIONS.HAS && message.data[0] !== C.EVENT.MESSAGE_DENIED)) {
     message.processedError = true;
     this._client._$onError(C.TOPIC.RECORD, message.data[0], message.data[1]);
     return;

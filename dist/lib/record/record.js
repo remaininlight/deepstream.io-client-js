@@ -1,8 +1,6 @@
 'use strict';
 /* eslint-disable prefer-spread, prefer-rest-params */
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 var jsonPath = require('./json-path');
 var ResubscribeNotifier = require('../utils/resubscribe-notifier');
 var EventEmitter = require('component-emitter2');
@@ -40,6 +38,10 @@ var Record = function Record(name, recordOptions, connection, options, client) {
   this.isDestroyed = false;
   this.hasProvider = false;
   this._$data = Object.create(null);
+
+  // ADDED
+  this._model = recordOptions.model;
+
   this.version = null;
   this._eventEmitter = new EventEmitter();
   this._queuedMethodCalls = [];
@@ -124,11 +126,13 @@ Record.prototype.get = function (path) {
  * @returns {void}
  */
 Record.prototype.set = function (pathOrData, dataOrCallback, callback) {
-  var path = void 0;
-  var data = void 0;
+  var _this = this;
+
+  var path = undefined;
+  var data = undefined;
   if (arguments.length === 1) {
     // set( object )
-    if ((typeof pathOrData === 'undefined' ? 'undefined' : _typeof(pathOrData)) !== 'object') {
+    if (typeof pathOrData !== 'object') {
       throw new Error('invalid argument data');
     }
     data = pathOrData;
@@ -137,10 +141,11 @@ Record.prototype.set = function (pathOrData, dataOrCallback, callback) {
       // set( path, data )
       path = pathOrData;
       data = dataOrCallback;
-    } else if ((typeof pathOrData === 'undefined' ? 'undefined' : _typeof(pathOrData)) === 'object' && typeof dataOrCallback === 'function') {
+    } else if (typeof pathOrData === 'object' && typeof dataOrCallback === 'function') {
       // set( data, callback )
       data = pathOrData;
-      callback = dataOrCallback; // eslint-disable-line
+      callback = dataOrCallback // eslint-disable-line
+      ;
     } else {
       throw new Error('invalid argument path');
     }
@@ -153,7 +158,7 @@ Record.prototype.set = function (pathOrData, dataOrCallback, callback) {
     data = dataOrCallback;
   }
 
-  if (!path && (data === null || (typeof data === 'undefined' ? 'undefined' : _typeof(data)) !== 'object')) {
+  if (!path && (data === null || typeof data !== 'object')) {
     throw new Error('invalid arguments, scalar values cannot be set without path');
   }
 
@@ -171,18 +176,20 @@ Record.prototype.set = function (pathOrData, dataOrCallback, callback) {
 
   if (oldValue === newValue) {
     if (typeof callback === 'function') {
-      var errorMessage = null;
-      if (!utils.isConnected(this._client)) {
-        errorMessage = 'Connection error: error updating record as connection was closed';
-      }
-      utils.requestIdleCallback(function () {
-        return callback(errorMessage);
-      });
+      (function () {
+        var errorMessage = null;
+        if (!utils.isConnected(_this._client)) {
+          errorMessage = 'Connection error: error updating record as connection was closed';
+        }
+        utils.requestIdleCallback(function () {
+          return callback(errorMessage);
+        });
+      })();
     }
     return this;
   }
 
-  var config = void 0;
+  var config = undefined;
   if (typeof callback === 'function') {
     config = {};
     config.writeSuccess = true;
@@ -195,7 +202,8 @@ Record.prototype.set = function (pathOrData, dataOrCallback, callback) {
     }
   }
   this._sendUpdate(path, data, config);
-  this._applyChange(newValue);
+  if (!this._model) this._applyChange(path, data, this._options.recordDeepCopy);
+  //this._applyChange(newValue)
   return this;
 };
 
@@ -220,7 +228,7 @@ Record.prototype.set = function (pathOrData, dataOrCallback, callback) {
  */
 // eslint-disable-next-line
 Record.prototype.subscribe = function (path, callback, triggerNow) {
-  var _this = this;
+  var _this2 = this;
 
   var args = this._normalizeArguments(arguments);
 
@@ -237,8 +245,8 @@ Record.prototype.subscribe = function (path, callback, triggerNow) {
 
   if (args.triggerNow) {
     this.whenReady(function () {
-      _this._eventEmitter.on(args.path, args.callback);
-      args.callback(_this.get(args.path));
+      _this2._eventEmitter.on(args.path, args.callback);
+      args.callback(_this2.get(args.path));
     });
   } else {
     this._eventEmitter.on(args.path, args.callback);
@@ -288,21 +296,21 @@ Record.prototype.unsubscribe = function (pathOrCallback, callback) {
  * @returns {void}
  */
 Record.prototype.discard = function () {
-  var _this2 = this;
+  var _this3 = this;
 
   if (this._checkDestroyed('discard')) {
     return;
   }
   this.whenReady(function () {
-    _this2.usages--;
-    if (_this2.usages <= 0) {
-      _this2.emit('destroyPending');
-      _this2._discardTimeout = _this2._ackTimeoutRegistry.add({
+    _this3.usages--;
+    if (_this3.usages <= 0) {
+      _this3.emit('destroyPending');
+      _this3._discardTimeout = _this3._ackTimeoutRegistry.add({
         topic: C.TOPIC.RECORD,
-        name: _this2.name,
+        name: _this3.name,
         action: C.ACTIONS.UNSUBSCRIBE
       });
-      _this2._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.UNSUBSCRIBE, [_this2.name]);
+      _this3._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.UNSUBSCRIBE, [_this3.name]);
     }
   });
 };
@@ -313,22 +321,22 @@ Record.prototype.discard = function () {
  * @public
  * @returns {void}
  */
-Record.prototype.delete = function () {
-  var _this3 = this;
+Record.prototype['delete'] = function () {
+  var _this4 = this;
 
   if (this._checkDestroyed('delete')) {
     return;
   }
   this.whenReady(function () {
-    _this3.emit('destroyPending');
-    _this3._deleteAckTimeout = _this3._ackTimeoutRegistry.add({
+    _this4.emit('destroyPending');
+    _this4._deleteAckTimeout = _this4._ackTimeoutRegistry.add({
       topic: C.TOPIC.RECORD,
-      name: _this3.name,
+      name: _this4.name,
       action: C.ACTIONS.DELETE,
       event: C.EVENT.DELETE_TIMEOUT,
-      timeout: _this3._options.recordDeleteTimeout
+      timeout: _this4._options.recordDeleteTimeout
     });
-    _this3._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.DELETE, [_this3.name]);
+    _this4._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.DELETE, [_this4.name]);
   });
 };
 
@@ -358,6 +366,7 @@ Record.prototype.whenReady = function (callback) {
  * @returns {void}
  */
 Record.prototype._$onMessage = function (message) {
+  //console.log('Record.prototype._$onMessage', message);
   if (message.action === C.ACTIONS.READ) {
     if (this.version === null) {
       this._ackTimeoutRegistry.clear(message);
@@ -417,7 +426,7 @@ Record.prototype._recoverRecord = function (remoteVersion, remoteData, message) 
 
 Record.prototype._sendUpdate = function (path, data, config) {
   this.version++;
-  var msgData = void 0;
+  var msgData = undefined;
   if (!path) {
     msgData = config === undefined ? [this.name, this.version, data] : [this.name, this.version, data, config];
     this._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.UPDATE, msgData);
@@ -440,6 +449,7 @@ Record.prototype._sendUpdate = function (path, data, config) {
  * @returns {void}
  */
 Record.prototype._onRecordRecovered = function (remoteVersion, remoteData, message, error, data) {
+  console.log('Record.prototype._onRecordRecovered remoteVersion, remoteData, message, error, data', remoteVersion, remoteData, message, error, data);
   if (!error) {
     var oldVersion = this.version;
     this.version = remoteVersion;
@@ -450,27 +460,31 @@ Record.prototype._onRecordRecovered = function (remoteVersion, remoteData, messa
       return;
     }
 
-    var newValue = jsonPath.set(oldValue, undefined, data, false);
+    //const newValue = jsonPath.set(oldValue, undefined, data, false)
 
+    /*
+    // TODO Uncomment and check
     if (utils.deepEquals(data, remoteData)) {
-      this._applyChange(data);
-
-      var callback = this._writeCallbacks[remoteVersion];
+      this._applyChange( undefined, data, false );
+      //this._applyChange(data)
+       const callback = this._writeCallbacks[remoteVersion]
       if (callback !== undefined) {
-        callback(null);
-        delete this._writeCallbacks[remoteVersion];
+        callback(null)
+        delete this._writeCallbacks[remoteVersion]
       }
-      return;
+      return
     }
+    */
 
     var config = message.data[4];
     if (config && JSON.parse(config).writeSuccess) {
-      var _callback = this._writeCallbacks[oldVersion];
+      var callback = this._writeCallbacks[oldVersion];
       delete this._writeCallbacks[oldVersion];
-      this._setUpCallback(this.version, _callback);
+      this._setUpCallback(this.version, callback);
     }
     this._sendUpdate(undefined, data, config);
-    this._applyChange(newValue);
+    this._applyChange(undefined, data, false);
+    //this._applyChange(newValue)
   } else {
     this.emit('error', C.EVENT.VERSION_EXISTS, 'received update for ' + remoteVersion + ' but version is ' + this.version);
   }
@@ -508,8 +522,9 @@ Record.prototype._processAckMessage = function (message) {
  * @returns {void}
  */
 Record.prototype._applyUpdate = function (message) {
+  //console.log('Record.prototype._applyUpdate', message);
   var version = parseInt(message.data[1], 10);
-  var data = void 0;
+  var data = undefined;
   if (message.action === C.ACTIONS.PATCH) {
     data = messageParser.convertTyped(message.data[3], this._client);
   } else {
@@ -532,7 +547,15 @@ Record.prototype._applyUpdate = function (message) {
   }
 
   this.version = version;
-  this._applyChange(jsonPath.set(this._$data, message.action === C.ACTIONS.PATCH ? message.data[2] : undefined, data));
+  this._applyChange(message.action === C.ACTIONS.PATCH ? message.data[2] : undefined, data, undefined);
+  /*
+  this._applyChange(
+    jsonPath.set(
+      this._$data,
+      message.action === C.ACTIONS.PATCH ? message.data[2] : undefined, data
+    )
+  )
+  */
 };
 
 /**
@@ -543,9 +566,12 @@ Record.prototype._applyUpdate = function (message) {
  * @private
  * @returns {void}
  */
+
 Record.prototype._onRead = function (message) {
+  //console.log('_onRead message', message);
   this.version = parseInt(message.data[1], 10);
-  this._applyChange(jsonPath.set(this._$data, undefined, JSON.parse(message.data[2])));
+  this._applyChange(undefined, JSON.parse(message.data[2]), undefined);
+  //this._applyChange( jsonPath.set( this._$data, undefined, JSON.parse( message.data[ 2 ] ) ) );
   this._setReady();
 };
 
@@ -588,21 +614,34 @@ Record.prototype._sendRead = function () {
  * @private
  * @returns {void}
  */
-Record.prototype._applyChange = function (newData) {
+Record.prototype._applyChange = function (path, change, deepCopy) {
+  //Record.prototype._applyChange = function( newData ) {
+  //console.log('_applyChange path change deepCopy', path, change, deepCopy);
   if (this.isDestroyed) {
     return;
   }
 
-  var oldData = this._$data;
-  this._$data = newData;
+  if (this._model) {
+    if (path) {
+      this._model.deliverToModel(path, change);
+    } else {
+      this._model.deliverToModel(change);
+    }
+  } else {
 
-  var paths = this._eventEmitter.eventNames();
-  for (var i = 0; i < paths.length; i++) {
-    var newValue = jsonPath.get(newData, paths[i], false);
-    var oldValue = jsonPath.get(oldData, paths[i], false);
+    var newData = jsonPath.set(this._$data, path, change, deepCopy);
 
-    if (newValue !== oldValue) {
-      this._eventEmitter.emit(paths[i], this.get(paths[i]));
+    var oldData = this._$data;
+    this._$data = newData;
+
+    var paths = this._eventEmitter.eventNames();
+    for (var i = 0; i < paths.length; i++) {
+      var newValue = jsonPath.get(newData, paths[i], false);
+      var oldValue = jsonPath.get(oldData, paths[i], false);
+
+      if (newValue !== oldValue) {
+        this._eventEmitter.emit(paths[i], this.get(paths[i]));
+      }
     }
   }
 };
@@ -618,7 +657,7 @@ Record.prototype._applyChange = function (newData) {
 Record.prototype._normalizeArguments = function (args) {
   // If arguments is already a map of normalized parameters
   // (e.g. when called by AnonymousRecord), just return it.
-  if (args.length === 1 && _typeof(args[0]) === 'object') {
+  if (args.length === 1 && typeof args[0] === 'object') {
     return args[0];
   }
 

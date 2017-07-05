@@ -63,8 +63,7 @@ RpcHandler.prototype.provide = function (name, callback) {
   this._ackTimeoutRegistry.add({
     topic: C.TOPIC.RPC,
     name: name,
-    action: C.ACTIONS.SUBSCRIBE
-  });
+    action: C.ACTIONS.SUBSCRIBE });
   this._providers[name] = callback;
   this._connection.sendMsg(C.TOPIC.RPC, C.ACTIONS.SUBSCRIBE, [name]);
 };
@@ -87,8 +86,7 @@ RpcHandler.prototype.unprovide = function (name) {
     this._ackTimeoutRegistry.add({
       topic: C.TOPIC.RPC,
       name: name,
-      action: C.ACTIONS.UNSUBSCRIBE
-    });
+      action: C.ACTIONS.UNSUBSCRIBE });
     this._connection.sendMsg(C.TOPIC.RPC, C.ACTIONS.UNSUBSCRIBE, [name]);
   }
 };
@@ -155,7 +153,7 @@ RpcHandler.prototype._respondToRpc = function (message) {
   var name = message.data[0];
   var correlationId = message.data[1];
   var data = null;
-  var response = void 0;
+  var response = undefined;
 
   if (message.data[2]) {
     data = messageParser.convertTyped(message.data[2], this._client);
@@ -179,8 +177,8 @@ RpcHandler.prototype._respondToRpc = function (message) {
  * @returns {void}
  */
 RpcHandler.prototype._$handle = function (message) {
-  var rpcName = void 0;
-  var correlationId = void 0;
+  var rpcName = undefined;
+  var correlationId = undefined;
 
   // RPC Requests
   if (message.action === C.ACTIONS.REQUEST) {

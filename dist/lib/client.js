@@ -118,7 +118,7 @@ Client.prototype.getUid = function () {
   var timestamp = new Date().getTime().toString(36);
   var randomString = (Math.random() * 10000000000000000).toString(36).replace('.', '');
 
-  return timestamp + '-' + randomString;
+  return '' + timestamp + '-' + randomString;
 };
 
 /**
@@ -176,7 +176,7 @@ Client.prototype._$onMessage = function (message) {
  * @returns {void}
  */
 Client.prototype._$onError = function (topic, event, msg) {
-  var errorMsg = void 0;
+  var errorMsg = undefined;
 
   /*
    * Help to diagnose the problem quicker by checking for
@@ -195,7 +195,7 @@ Client.prototype._$onError = function (topic, event, msg) {
   } else {
     console.log('--- You can catch all deepstream errors by subscribing to the error event ---');
 
-    errorMsg = event + ': ' + msg;
+    errorMsg = '' + event + ': ' + msg;
 
     if (topic) {
       errorMsg += ' (' + topic + ')';

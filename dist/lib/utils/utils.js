@@ -1,8 +1,5 @@
 'use strict';
 /* eslint-disable valid-typeof */
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 var C = require('../constants/constants');
 
 /**
@@ -28,7 +25,9 @@ var OBJECT = 'object';
  * @public
  * @type {Boolean}
  */
-exports.isNode = typeof process !== 'undefined' && process.toString() === '[object process]';
+// Changed node test for running with babel
+exports.isNode = typeof process !== 'undefined' && process.toString() === '[object Object]';
+//exports.isNode = typeof process !== 'undefined' && process.toString() === '[object process]'
 
 /**
  * Provides as soon as possible async execution in a cross
@@ -86,7 +85,7 @@ exports.trim = function (inputString) {
 exports.deepEquals = function (objA, objB) {
   if (objA === objB) {
     return true;
-  } else if ((typeof objA === 'undefined' ? 'undefined' : _typeof(objA)) !== OBJECT || (typeof objB === 'undefined' ? 'undefined' : _typeof(objB)) !== OBJECT) {
+  } else if (typeof objA !== OBJECT || typeof objB !== OBJECT) {
     return false;
   }
 
@@ -112,7 +111,7 @@ exports.deepEquals = function (objA, objB) {
  * @returns {Mixed} clone
  */
 exports.deepCopy = function (obj) {
-  if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === OBJECT) {
+  if (typeof obj === OBJECT) {
     return JSON.parse(JSON.stringify(obj));
   }
   return obj;
@@ -131,7 +130,7 @@ exports.deepCopy = function (obj) {
 exports.shallowCopy = function (obj) {
   if (Array.isArray(obj)) {
     return obj.slice(0);
-  } else if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === OBJECT) {
+  } else if (typeof obj === OBJECT) {
     var copy = Object.create(null);
     var props = Object.keys(obj);
     for (var i = 0; i < props.length; i++) {

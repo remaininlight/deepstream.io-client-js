@@ -1,7 +1,5 @@
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 var C = require('../constants/constants');
 
 var SEP = C.MESSAGE_PART_SEPERATOR;
@@ -24,7 +22,7 @@ exports.getMsg = function (topic, action, data) {
 
   if (data) {
     for (var i = 0; i < data.length; i++) {
-      if (_typeof(data[i]) === 'object') {
+      if (typeof data[i] === 'object') {
         sendData.push(JSON.stringify(data[i]));
       } else {
         sendData.push(data[i]);
@@ -47,7 +45,7 @@ exports.getMsg = function (topic, action, data) {
  * @returns {String} string representation of the value
  */
 exports.typed = function (value) {
-  var type = typeof value === 'undefined' ? 'undefined' : _typeof(value);
+  var type = typeof value;
 
   if (type === 'string') {
     return C.TYPES.STRING + value;

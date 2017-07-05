@@ -107,7 +107,7 @@ Listener.prototype._$onMessage = function (message) {
   } else if (message.action === C.ACTIONS.SUBSCRIPTION_FOR_PATTERN_REMOVED) {
     this._callback(message.data[1], false);
   } else {
-    this._client._$onError(this._topic, C.EVENT.UNSOLICITED_MESSAGE, message.data[0] + '|' + message.data[1]);
+    this._client._$onError(this._topic, C.EVENT.UNSOLICITED_MESSAGE, '' + message.data[0] + '|' + message.data[1]);
   }
 };
 

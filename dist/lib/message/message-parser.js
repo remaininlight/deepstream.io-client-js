@@ -64,7 +64,7 @@ MessageParser.prototype.convertTyped = function (value, client) {
     try {
       return JSON.parse(value.substr(1));
     } catch (e) {
-      client._$onError(C.TOPIC.ERROR, C.EVENT.MESSAGE_PARSE_ERROR, e.toString() + '(' + value + ')');
+      client._$onError(C.TOPIC.ERROR, C.EVENT.MESSAGE_PARSE_ERROR, '' + e.toString() + '(' + value + ')');
       return undefined;
     }
   }

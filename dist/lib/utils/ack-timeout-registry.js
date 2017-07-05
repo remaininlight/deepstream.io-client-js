@@ -88,7 +88,7 @@ AckTimeoutRegistry.prototype.remove = function (timeout) {
  * @returns {void}
  */
 AckTimeoutRegistry.prototype.clear = function (message) {
-  var uniqueName = void 0;
+  var uniqueName = undefined;
   if (message.action === C.ACTIONS.ACK && message.data.length > 1) {
     uniqueName = message.topic + message.data[0] + (message.data[1] ? message.data[1] : '');
   } else {

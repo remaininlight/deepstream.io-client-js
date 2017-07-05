@@ -41,7 +41,7 @@ var List = function List(recordHandler, name, options) {
   this._hasRemoveListener = null;
   this._hasMoveListener = null;
 
-  this.delete = this._record.delete.bind(this._record);
+  this['delete'] = this._record['delete'].bind(this._record);
   this.discard = this._record.discard.bind(this._record);
   this.whenReady = this._record.whenReady.bind(this);
 };
@@ -83,7 +83,7 @@ List.prototype.isEmpty = function () {
  */
 List.prototype.setEntries = function (entries) {
   var errorMsg = 'entries must be an array of record names';
-  var i = void 0;
+  var i = undefined;
 
   if (!(entries instanceof Array)) {
     throw new Error(errorMsg);
@@ -122,7 +122,7 @@ List.prototype.removeEntry = function (entry, index) {
   var currentEntries = this._record.get();
   var hasIndex = this._hasIndex(index);
   var entries = [];
-  var i = void 0;
+  var i = undefined;
 
   for (i = 0; i < currentEntries.length; i++) {
     if (currentEntries[i] !== entry || hasIndex && index !== i) {
@@ -180,9 +180,9 @@ List.prototype.subscribe = function () {
   }
 
   // Make sure the callback is invoked with an empty array for new records
-  var listCallback = function (callback) {
+  var listCallback = (function (callback) {
     callback(this.getEntries());
-  }.bind(this, parameters.callback);
+  }).bind(this, parameters.callback);
 
   /**
   * Adding a property onto a function directly is terrible practice,
@@ -330,8 +330,8 @@ List.prototype._afterChange = function () {
 
   var after = this._getStructure();
   var before = this._beforeStructure;
-  var entry = void 0;
-  var i = void 0;
+  var entry = undefined;
+  var i = undefined;
 
   if (this._hasRemoveListener) {
     for (entry in before) {
@@ -379,7 +379,7 @@ List.prototype._afterChange = function () {
  */
 List.prototype._getStructure = function () {
   var structure = {};
-  var i = void 0;
+  var i = undefined;
   var entries = this._record.get();
 
   for (i = 0; i < entries.length; i++) {

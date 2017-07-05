@@ -619,7 +619,7 @@ Record.prototype._sendRead = function () {
  * @private
  * @returns {void}
  */
-Record.prototype._applyChange = function( path, change, deepCopy ) {
+Record.prototype._applyChange = function(path, change, deepCopy) {
 //Record.prototype._applyChange = function( newData ) {
 	//console.log('_applyChange path change deepCopy', path, change, deepCopy);
 	if ( this.isDestroyed ) {

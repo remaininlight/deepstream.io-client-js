@@ -1,7 +1,5 @@
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 var BrowserWebSocket = global.WebSocket || global.MozWebSocket;
 var NodeWebSocket = require('ws');
 var messageParser = require('./message-parser');
@@ -69,7 +67,7 @@ Connection.prototype.getState = function () {
  * @returns {void}
  */
 Connection.prototype.authenticate = function (authParams, callback) {
-  if ((typeof authParams === 'undefined' ? 'undefined' : _typeof(authParams)) !== 'object') {
+  if (typeof authParams !== 'object') {
     this._client._$onError(C.TOPIC.ERROR, C.EVENT.INVALID_AUTH_MSG, 'authParams is not an object');
     return;
   }
@@ -306,11 +304,15 @@ Connection.prototype._onError = function (error) {
    * an error. So let's defer it to allow the reconnection to kick in.
    */
   setTimeout(function () {
-    var msg = void 0;
+    var msg = undefined;
     if (error.code === 'ECONNRESET' || error.code === 'ECONNREFUSED') {
       msg = 'Can\'t connect! Deepstream server unreachable on ' + _this._originalUrl;
     } else {
-      msg = error.toString();
+      try {
+        msg = JSON.stringify(error);
+      } catch (e) {
+        msg = error.toString();
+      }
     }
     _this._client._$onError(C.TOPIC.CONNECTION, C.EVENT.CONNECTION_ERROR, msg);
   }, 1);

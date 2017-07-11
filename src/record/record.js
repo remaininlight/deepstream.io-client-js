@@ -421,6 +421,7 @@ Record.prototype._recoverRecord = function (remoteVersion, remoteData, message) 
 }
 
 Record.prototype._sendUpdate = function (path, data, config) {
+  console.log('Record.prototype._sendUpdate path, data, config', path, data, config);
   this.version++
   let msgData
   if (!path) {

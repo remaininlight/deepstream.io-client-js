@@ -6,6 +6,172 @@
  * Expose `Emitter`.
  */
 
+module.exports = Emitter;
+
+/**
+ * Initialize a new `Emitter`.
+ *
+ * @api public
+ */
+
+function Emitter(obj) {
+  if (obj) return mixin(obj);
+};
+
+/**
+ * Mixin the emitter properties.
+ *
+ * @param {Object} obj
+ * @return {Object}
+ * @api private
+ */
+
+function mixin(obj) {
+  for (var key in Emitter.prototype) {
+    obj[key] = Emitter.prototype[key];
+  }
+  return obj;
+}
+
+/**
+ * Listen on the given `event` with `fn`.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.on =
+Emitter.prototype.addEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+  (this._callbacks[event] = this._callbacks[event] || [])
+    .push(fn);
+  return this;
+};
+
+/**
+ * Adds an `event` listener that will be invoked a single
+ * time then automatically removed.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.once = function(event, fn){
+  var self = this;
+  this._callbacks = this._callbacks || {};
+
+  function on() {
+    self.off(event, on);
+    fn.apply(this, arguments);
+  }
+
+  on.fn = fn;
+  this.on(event, on);
+  return this;
+};
+
+/**
+ * Remove the given callback for `event` or all
+ * registered callbacks.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.off =
+Emitter.prototype.removeListener =
+Emitter.prototype.removeAllListeners =
+Emitter.prototype.removeEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+
+  // all
+  if (0 == arguments.length) {
+    this._callbacks = {};
+    return this;
+  }
+
+  // specific event
+  var callbacks = this._callbacks[event];
+  if (!callbacks) return this;
+
+  // remove all handlers
+  if (1 == arguments.length) {
+    delete this._callbacks[event];
+    return this;
+  }
+
+  // remove specific handler
+  var cb;
+  for (var i = 0; i < callbacks.length; i++) {
+    cb = callbacks[i];
+    if (cb === fn || cb.fn === fn) {
+      callbacks.splice(i, 1);
+      break;
+    }
+  }
+  return this;
+};
+
+/**
+ * Emit `event` with the given args.
+ *
+ * @param {String} event
+ * @param {Mixed} ...
+ * @return {Emitter}
+ */
+
+Emitter.prototype.emit = function(event){
+  this._callbacks = this._callbacks || {};
+  var args = [].slice.call(arguments, 1)
+    , callbacks = this._callbacks[event];
+
+  if (callbacks) {
+    callbacks = callbacks.slice(0);
+    for (var i = 0, len = callbacks.length; i < len; ++i) {
+      callbacks[i].apply(this, args);
+    }
+  }
+
+  return this;
+};
+
+/**
+ * Return array of callbacks for `event`.
+ *
+ * @param {String} event
+ * @return {Array}
+ * @api public
+ */
+
+Emitter.prototype.listeners = function(event){
+  this._callbacks = this._callbacks || {};
+  return this._callbacks[event] || [];
+};
+
+/**
+ * Check if this emitter has `event` handlers.
+ *
+ * @param {String} event
+ * @return {Boolean}
+ * @api public
+ */
+
+Emitter.prototype.hasListeners = function(event){
+  return !! this.listeners(event).length;
+};
+
+},{}],3:[function(_dereq_,module,exports){
+
+/**
+ * Expose `Emitter`.
+ */
+
 if (typeof module !== 'undefined') {
   module.exports = Emitter;
 }
@@ -187,7 +353,7 @@ Emitter.prototype.eventNames = function(){
   return this._callbacks ? Object.keys(this._callbacks) : [];
 }
 
-},{}],3:[function(_dereq_,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -373,7 +539,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],4:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 (function (global){
 /*! https://mths.be/punycode v1.4.1 by @mathias */
 ;(function(root) {
@@ -910,7 +1076,7 @@ process.umask = function() { return 0; };
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],5:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -996,7 +1162,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],6:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -1083,13 +1249,13 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 'use strict';
 
 exports.decode = exports.parse = _dereq_('./decode');
 exports.encode = exports.stringify = _dereq_('./encode');
 
-},{"./decode":5,"./encode":6}],8:[function(_dereq_,module,exports){
+},{"./decode":6,"./encode":7}],9:[function(_dereq_,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -1823,7 +1989,7 @@ Url.prototype.parseHost = function() {
   if (host) this.hostname = host;
 };
 
-},{"./util":9,"punycode":4,"querystring":7}],9:[function(_dereq_,module,exports){
+},{"./util":10,"punycode":5,"querystring":8}],10:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -1841,7 +2007,7 @@ module.exports = {
   }
 };
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var C = _dereq_('./constants/constants');
@@ -2113,7 +2279,7 @@ createDeepstream.MERGE_STRATEGIES = MS;
 
 module.exports = createDeepstream;
 
-},{"./constants/constants":11,"./constants/merge-strategies":12,"./default-options":13,"./event/event-handler":14,"./message/connection":15,"./presence/presence-handler":18,"./record/record-handler":22,"./rpc/rpc-handler":24,"./utils/ack-timeout-registry":27,"component-emitter2":2}],11:[function(_dereq_,module,exports){
+},{"./constants/constants":12,"./constants/merge-strategies":13,"./default-options":14,"./event/event-handler":15,"./message/connection":16,"./presence/presence-handler":19,"./record/record-handler":23,"./rpc/rpc-handler":25,"./utils/ack-timeout-registry":28,"component-emitter2":3}],12:[function(_dereq_,module,exports){
 'use strict';
 
 exports.CONNECTION_STATE = {};
@@ -2219,7 +2385,7 @@ exports.CALL_STATE.DECLINED = 'DECLINED';
 exports.CALL_STATE.ENDED = 'ENDED';
 exports.CALL_STATE.ERROR = 'ERROR';
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -2238,7 +2404,7 @@ module.exports = {
   }
 };
 
-},{}],13:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var MERGE_STRATEGIES = _dereq_('./constants/merge-strategies');
@@ -2381,7 +2547,7 @@ module.exports = {
   nodeSocketOptions: null
 };
 
-},{"./constants/merge-strategies":12}],14:[function(_dereq_,module,exports){
+},{"./constants/merge-strategies":13}],15:[function(_dereq_,module,exports){
 'use strict';
 
 var messageBuilder = _dereq_('../message/message-builder');
@@ -2628,7 +2794,7 @@ EventHandler.prototype._resubscribe = function () {
 
 module.exports = EventHandler;
 
-},{"../constants/constants":11,"../message/message-builder":16,"../message/message-parser":17,"../utils/listener":28,"../utils/resubscribe-notifier":29,"component-emitter2":2}],15:[function(_dereq_,module,exports){
+},{"../constants/constants":12,"../message/message-builder":17,"../message/message-parser":18,"../utils/listener":29,"../utils/resubscribe-notifier":30,"component-emitter2":3}],16:[function(_dereq_,module,exports){
 (function (global){
 'use strict';
 
@@ -3179,7 +3345,7 @@ Connection.prototype._clearReconnect = function () {
 module.exports = Connection;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../constants/constants":11,"../utils/utils":31,"./message-builder":16,"./message-parser":17,"ws":1}],16:[function(_dereq_,module,exports){
+},{"../constants/constants":12,"../utils/utils":32,"./message-builder":17,"./message-parser":18,"ws":1}],17:[function(_dereq_,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -3262,7 +3428,7 @@ exports.typed = function (value) {
   throw new Error('Can\'t serialize type ' + value);
 };
 
-},{"../constants/constants":11}],17:[function(_dereq_,module,exports){
+},{"../constants/constants":12}],18:[function(_dereq_,module,exports){
 'use strict';
 
 var C = _dereq_('../constants/constants');
@@ -3410,7 +3576,7 @@ MessageParser.prototype._parseMessage = function (message, client) {
 
 module.exports = new MessageParser();
 
-},{"../constants/constants":11}],18:[function(_dereq_,module,exports){
+},{"../constants/constants":12}],19:[function(_dereq_,module,exports){
 'use strict';
 
 var EventEmitter = _dereq_('component-emitter2');
@@ -3547,7 +3713,7 @@ PresenceHandler.prototype._resubscribe = function () {
 
 module.exports = PresenceHandler;
 
-},{"../constants/constants":11,"../utils/resubscribe-notifier":29,"component-emitter2":2}],19:[function(_dereq_,module,exports){
+},{"../constants/constants":12,"../utils/resubscribe-notifier":30,"component-emitter2":3}],20:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable prefer-rest-params, prefer-spread */
 
@@ -3730,7 +3896,7 @@ AnonymousRecord.prototype._callMethodOnRecord = function (methodName) {
 
 module.exports = AnonymousRecord;
 
-},{"./record":23,"component-emitter2":2}],20:[function(_dereq_,module,exports){
+},{"./record":24,"component-emitter2":3}],21:[function(_dereq_,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -3881,7 +4047,7 @@ function tokenize(path) {
   return cache[path];
 }
 
-},{"../utils/utils":31}],21:[function(_dereq_,module,exports){
+},{"../utils/utils":32}],22:[function(_dereq_,module,exports){
 'use strict';
 /* eslint-disable prefer-rest-params */
 
@@ -4279,7 +4445,7 @@ List.prototype._getStructure = function () {
 
 module.exports = List;
 
-},{"../constants/constants":11,"./record":23,"component-emitter2":2}],22:[function(_dereq_,module,exports){
+},{"../constants/constants":12,"./record":24,"component-emitter2":3}],23:[function(_dereq_,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -4687,19 +4853,18 @@ RecordHandler.prototype._removeRecord = function (recordName) {
 
 module.exports = RecordHandler;
 
-},{"../constants/constants":11,"../message/message-builder":16,"../message/message-parser":17,"../utils/listener":28,"../utils/single-notifier":30,"./anonymous-record":19,"./list":21,"./record":23,"component-emitter2":2}],23:[function(_dereq_,module,exports){
+},{"../constants/constants":12,"../message/message-builder":17,"../message/message-parser":18,"../utils/listener":29,"../utils/single-notifier":31,"./anonymous-record":20,"./list":22,"./record":24,"component-emitter2":3}],24:[function(_dereq_,module,exports){
 'use strict';
-/* eslint-disable prefer-spread, prefer-rest-params */
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var jsonPath = _dereq_('./json-path');
-var ResubscribeNotifier = _dereq_('../utils/resubscribe-notifier');
-var EventEmitter = _dereq_('component-emitter2');
-var C = _dereq_('../constants/constants');
-var messageBuilder = _dereq_('../message/message-builder');
-var messageParser = _dereq_('../message/message-parser');
-var utils = _dereq_('../utils/utils');
+var jsonPath = _dereq_('./json-path'),
+    utils = _dereq_('../utils/utils'),
+    ResubscribeNotifier = _dereq_('../utils/resubscribe-notifier'),
+    EventEmitter = _dereq_('component-emitter'),
+    C = _dereq_('../constants/constants'),
+    messageBuilder = _dereq_('../message/message-builder'),
+    messageParser = _dereq_('../message/message-parser');
 
 /**
  * This class represents a single record - an observable
@@ -4707,64 +4872,52 @@ var utils = _dereq_('../utils/utils');
  *
  * @extends {EventEmitter}
  *
- * @param {String} name              The unique name of the record
- * @param {Object} recordOptions     A map of options, e.g. { persist: true }
- * @param {Connection} Connection    The instance of the server connection
- * @param {Object} options        Deepstream options
- * @param {Client} client        deepstream.io client
+ * @param {String} name          		The unique name of the record
+ * @param {Object} recordOptions 		A map of options, e.g. { persist: true }
+ * @param {Connection} Connection		The instance of the server connection
+ * @param {Object} options				Deepstream options
+ * @param {Client} client				deepstream.io client
  *
  * @constructor
  */
 var Record = function Record(name, recordOptions, connection, options, client) {
-  if (typeof name !== 'string' || name.length === 0) {
-    throw new Error('invalid argument name');
-  }
 
-  this.name = name;
-  this.usages = 0;
-  this._recordOptions = recordOptions;
-  this._connection = connection;
-  this._client = client;
-  this._options = options;
-  this.isReady = false;
-  this.isDestroyed = false;
-  this.hasProvider = false;
-  this._$data = Object.create(null);
+	//console.log('recordOptions', recordOptions);
 
-  // ADDED
-  this._model = recordOptions.model;
+	if (typeof name !== 'string' || name.length === 0) {
+		throw new Error('invalid argument name');
+	}
 
-  this.version = null;
-  this._eventEmitter = new EventEmitter();
-  this._queuedMethodCalls = [];
-  this._writeCallbacks = {};
+	this.name = name;
+	this.usages = 0;
+	this._recordOptions = recordOptions;
+	this._connection = connection;
+	this._client = client;
+	this._options = options;
+	this.isReady = false;
+	this.isDestroyed = false;
+	this.hasProvider = false;
 
-  this._mergeStrategy = null;
-  if (options.mergeStrategy) {
-    this.setMergeStrategy(options.mergeStrategy);
-  }
+	// ADDED
+	this._$data = Object.create(null);
+	this._model = recordOptions.model;
 
-  this._ackTimeoutRegistry = client._$getAckTimeoutRegistry();
-  this._resubscribeNotifier = new ResubscribeNotifier(this._client, this._sendRead.bind(this));
+	this.version = null;
+	this._eventEmitter = new EventEmitter();
+	this._queuedMethodCalls = [];
 
-  this._readAckTimeout = this._ackTimeoutRegistry.add({
-    topic: C.TOPIC.RECORD,
-    name: name,
-    action: C.ACTIONS.SUBSCRIBE,
-    timeout: this._options.recordReadAckTimeout
-  });
-  this._responseTimeout = this._ackTimeoutRegistry.add({
-    topic: C.TOPIC.RECORD,
-    name: name,
-    action: C.ACTIONS.READ,
-    event: C.EVENT.RESPONSE_TIMEOUT,
-    timeout: this._options.recordReadTimeout
-  });
-  this._sendRead();
+	this._mergeStrategy = null;
+	if (options.mergeStrategy) {
+		this.setMergeStrategy(options.mergeStrategy);
+	}
+
+	this._resubscribeNotifier = new ResubscribeNotifier(this._client, this._sendRead.bind(this));
+	this._readAckTimeout = setTimeout(this._onTimeout.bind(this, C.EVENT.ACK_TIMEOUT), this._options.recordReadAckTimeout);
+	this._readTimeout = setTimeout(this._onTimeout.bind(this, C.EVENT.RESPONSE_TIMEOUT), this._options.recordReadTimeout);
+	this._sendRead();
 };
 
-EventEmitter(Record.prototype); // eslint-disable-line
-
+EventEmitter(Record.prototype);
 
 /**
  * Set a merge strategy to resolve any merge conflicts that may occur due
@@ -4779,11 +4932,12 @@ EventEmitter(Record.prototype); // eslint-disable-line
  * @returns {void}
  */
 Record.prototype.setMergeStrategy = function (mergeStrategy) {
-  if (typeof mergeStrategy === 'function') {
-    this._mergeStrategy = mergeStrategy;
-  } else {
-    throw new Error('Invalid merge strategy: Must be a Function');
-  }
+	//console.log('Record.prototype.setMergeStrategy ', mergeStrategy);
+	if (typeof mergeStrategy === 'function') {
+		this._mergeStrategy = mergeStrategy;
+	} else {
+		throw new Error('Invalid merge strategy: Must be a Function');
+	}
 };
 
 /**
@@ -4801,7 +4955,7 @@ Record.prototype.setMergeStrategy = function (mergeStrategy) {
  * @returns {Mixed} value
  */
 Record.prototype.get = function (path) {
-  return jsonPath.get(this._$data, path, this._options.recordDeepCopy);
+	return jsonPath.get(this._$data, path, this._options.recordDeepCopy);
 };
 
 /**
@@ -4811,88 +4965,51 @@ Record.prototype.get = function (path) {
  *
  * If the new data is equal to the current data, nothing will happen
  *
- * @param {[String|Object]} pathOrData Either a JSON path when called with
- *                                     two arguments or the data itself
+ * @param {[String|Object]} pathOrData Either a JSON path when called with two arguments or the data itself
  * @param {Object} data     The data that should be stored in the record
  *
  * @public
  * @returns {void}
  */
-Record.prototype.set = function (pathOrData, dataOrCallback, callback) {
-  var path = void 0;
-  var data = void 0;
-  if (arguments.length === 1) {
-    // set( object )
-    if ((typeof pathOrData === 'undefined' ? 'undefined' : _typeof(pathOrData)) !== 'object') {
-      throw new Error('invalid argument data');
-    }
-    data = pathOrData;
-  } else if (arguments.length === 2) {
-    if (typeof pathOrData === 'string' && pathOrData.length !== 0 && typeof dataOrCallback !== 'function') {
-      // set( path, data )
-      path = pathOrData;
-      data = dataOrCallback;
-    } else if ((typeof pathOrData === 'undefined' ? 'undefined' : _typeof(pathOrData)) === 'object' && typeof dataOrCallback === 'function') {
-      // set( data, callback )
-      data = pathOrData;
-      callback = dataOrCallback; // eslint-disable-line
-    } else {
-      throw new Error('invalid argument path');
-    }
-  } else if (arguments.length === 3) {
-    // set( path, data, callback )
-    if (typeof pathOrData !== 'string' || pathOrData.length === 0 || typeof callback !== 'function') {
-      throw new Error('invalid arguments, must pass in a string, a value and a function');
-    }
-    path = pathOrData;
-    data = dataOrCallback;
-  }
+Record.prototype.set = function (pathOrData, data) {
+	//console.log('Record.prototype.set pathOrData, data', pathOrData, data);
+	if (arguments.length === 1 && (typeof pathOrData === 'undefined' ? 'undefined' : _typeof(pathOrData)) !== 'object') {
+		throw new Error('invalid argument data');
+	}
+	if (arguments.length === 2 && (typeof pathOrData !== 'string' || pathOrData.length === 0)) {
+		throw new Error('invalid argument path');
+	}
 
-  if (!path && (data === null || (typeof data === 'undefined' ? 'undefined' : _typeof(data)) !== 'object')) {
-    throw new Error('invalid arguments, scalar values cannot be set without path');
-  }
+	if (this._checkDestroyed('set')) {
+		return this;
+	}
 
-  if (this._checkDestroyed('set')) {
-    return this;
-  }
+	if (!this.isReady) {
+		this._queuedMethodCalls.push({
+			method: 'set',
+			args: arguments
+		});
+		return this;
+	}
 
-  if (!this.isReady) {
-    this._queuedMethodCalls.push({ method: 'set', args: arguments });
-    return this;
-  }
+	var path = arguments.length === 1 ? undefined : pathOrData;
+	data = path ? data : pathOrData;
 
+	this._sendUpdate(path, data);
+
+	// If there is a model then it should already have been updated
+	if (!this._model) {
+		/*
   var oldValue = this._$data;
-  var newValue = jsonPath.set(oldValue, path, data, this._options.recordDeepCopy);
-
-  if (oldValue === newValue) {
-    if (typeof callback === 'function') {
-      var errorMessage = null;
-      if (!utils.isConnected(this._client)) {
-        errorMessage = 'Connection error: error updating record as connection was closed';
-      }
-      utils.requestIdleCallback(function () {
-        return callback(errorMessage);
-      });
-    }
-    return this;
+  var newValue = jsonPath.set( oldValue, path, data, this._options.recordDeepCopy );
+  	if ( oldValue === newValue ) {
+  	return this;
   }
-
-  var config = void 0;
-  if (typeof callback === 'function') {
-    config = {};
-    config.writeSuccess = true;
-    if (!utils.isConnected(this._client)) {
-      utils.requestIdleCallback(function () {
-        return callback('Connection error: error updating record as connection was closed');
-      });
-    } else {
-      this._setUpCallback(this.version, callback);
-    }
-  }
-  this._sendUpdate(path, data, config);
-  if (!this._model) this._applyChange(path, data, this._options.recordDeepCopy);
-  //this._applyChange(newValue)
-  return this;
+  */
+		this._applyChange(path, data, this._options.recordDeepCopy);
+		//this._applyChange( newValue );
+	}
+	return this;
 };
 
 /**
@@ -4906,39 +5023,36 @@ Record.prototype.set = function (pathOrData, dataOrCallback, callback) {
  * If called with true for triggerNow, the callback will
  * be called immediatly with the current value
  *
- * @param   {[String]}    path      A JSON path within the record to subscribe to
- * @param   {Function}    callback         Callback function to notify on changes
- * @param   {[Boolean]}   triggerNow      A flag to specify whether the callback should
- *                                         be invoked immediatly with the current value
+ * @param   {[String]}		path			A JSON path within the record to subscribe to
+ * @param   {Function} 		callback       	Callback function to notify on changes
+ * @param   {[Boolean]}		triggerNow      A flag to specify whether the callback should be invoked immediatly
+ *                                       	with the current value
  *
  * @public
  * @returns {void}
  */
-// eslint-disable-next-line
 Record.prototype.subscribe = function (path, callback, triggerNow) {
-  var _this = this;
+	var args = this._normalizeArguments(arguments);
 
-  var args = this._normalizeArguments(arguments);
+	if (args.path !== undefined && (typeof args.path !== 'string' || args.path.length === 0)) {
+		throw new Error('invalid argument path');
+	}
+	if (typeof args.callback !== 'function') {
+		throw new Error('invalid argument callback');
+	}
 
-  if (args.path !== undefined && (typeof args.path !== 'string' || args.path.length === 0)) {
-    throw new Error('invalid argument path');
-  }
-  if (typeof args.callback !== 'function') {
-    throw new Error('invalid argument callback');
-  }
+	if (this._checkDestroyed('subscribe')) {
+		return;
+	}
 
-  if (this._checkDestroyed('subscribe')) {
-    return;
-  }
-
-  if (args.triggerNow) {
-    this.whenReady(function () {
-      _this._eventEmitter.on(args.path, args.callback);
-      args.callback(_this.get(args.path));
-    });
-  } else {
-    this._eventEmitter.on(args.path, args.callback);
-  }
+	if (args.triggerNow) {
+		this.whenReady(function () {
+			this._eventEmitter.on(args.path, args.callback);
+			args.callback(this.get(args.path));
+		}.bind(this));
+	} else {
+		this._eventEmitter.on(args.path, args.callback);
+	}
 };
 
 /**
@@ -4952,28 +5066,26 @@ Record.prototype.subscribe = function (path, callback, triggerNow) {
  * discard instead
  *
  * @param   {[String|Function]}   pathOrCallback A JSON path
- * @param   {Function}         callback     The callback method. Please note, if a bound
- *                                          method was passed to subscribe, the same method
- *                                          must be passed to unsubscribe as well.
+ * @param   {Function} 			  callback   	The callback method. Please note, if a bound method was passed to
+ *                                	   			subscribe, the same method must be passed to unsubscribe as well.
  *
  * @public
  * @returns {void}
  */
-// eslint-disable-next-line
 Record.prototype.unsubscribe = function (pathOrCallback, callback) {
-  var args = this._normalizeArguments(arguments);
+	var args = this._normalizeArguments(arguments);
 
-  if (args.path !== undefined && (typeof args.path !== 'string' || args.path.length === 0)) {
-    throw new Error('invalid argument path');
-  }
-  if (args.callback !== undefined && typeof args.callback !== 'function') {
-    throw new Error('invalid argument callback');
-  }
+	if (args.path !== undefined && (typeof args.path !== 'string' || args.path.length === 0)) {
+		throw new Error('invalid argument path');
+	}
+	if (args.callback !== undefined && typeof args.callback !== 'function') {
+		throw new Error('invalid argument callback');
+	}
 
-  if (this._checkDestroyed('unsubscribe')) {
-    return;
-  }
-  this._eventEmitter.off(args.path, args.callback);
+	if (this._checkDestroyed('unsubscribe')) {
+		return;
+	}
+	this._eventEmitter.off(args.path, args.callback);
 };
 
 /**
@@ -4984,23 +5096,17 @@ Record.prototype.unsubscribe = function (pathOrCallback, callback) {
  * @returns {void}
  */
 Record.prototype.discard = function () {
-  var _this2 = this;
-
-  if (this._checkDestroyed('discard')) {
-    return;
-  }
-  this.whenReady(function () {
-    _this2.usages--;
-    if (_this2.usages <= 0) {
-      _this2.emit('destroyPending');
-      _this2._discardTimeout = _this2._ackTimeoutRegistry.add({
-        topic: C.TOPIC.RECORD,
-        name: _this2.name,
-        action: C.ACTIONS.UNSUBSCRIBE
-      });
-      _this2._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.UNSUBSCRIBE, [_this2.name]);
-    }
-  });
+	if (this._checkDestroyed('discard')) {
+		return;
+	}
+	this.whenReady(function () {
+		this.usages--;
+		if (this.usages <= 0) {
+			this.emit('destroyPending');
+			this._discardTimeout = setTimeout(this._onTimeout.bind(this, C.EVENT.ACK_TIMEOUT), this._options.subscriptionTimeout);
+			this._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.UNSUBSCRIBE, [this.name]);
+		}
+	}.bind(this));
 };
 
 /**
@@ -5010,22 +5116,14 @@ Record.prototype.discard = function () {
  * @returns {void}
  */
 Record.prototype.delete = function () {
-  var _this3 = this;
-
-  if (this._checkDestroyed('delete')) {
-    return;
-  }
-  this.whenReady(function () {
-    _this3.emit('destroyPending');
-    _this3._deleteAckTimeout = _this3._ackTimeoutRegistry.add({
-      topic: C.TOPIC.RECORD,
-      name: _this3.name,
-      action: C.ACTIONS.DELETE,
-      event: C.EVENT.DELETE_TIMEOUT,
-      timeout: _this3._options.recordDeleteTimeout
-    });
-    _this3._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.DELETE, [_this3.name]);
-  });
+	if (this._checkDestroyed('delete')) {
+		return;
+	}
+	this.whenReady(function () {
+		this.emit('destroyPending');
+		this._deleteAckTimeout = setTimeout(this._onTimeout.bind(this, C.EVENT.DELETE_TIMEOUT), this._options.recordDeleteTimeout);
+		this._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.DELETE, [this.name]);
+	}.bind(this));
 };
 
 /**
@@ -5038,11 +5136,11 @@ Record.prototype.delete = function () {
  * @returns {void}
  */
 Record.prototype.whenReady = function (callback) {
-  if (this.isReady === true) {
-    callback(this);
-  } else {
-    this.once('ready', callback.bind(this, this));
-  }
+	if (this.isReady === true) {
+		callback(this);
+	} else {
+		this.once('ready', callback.bind(this, this));
+	}
 };
 
 /**
@@ -5054,41 +5152,29 @@ Record.prototype.whenReady = function (callback) {
  * @returns {void}
  */
 Record.prototype._$onMessage = function (message) {
-  console.log('Record.prototype._$onMessage', message);
-  if (message.action === C.ACTIONS.READ) {
-    if (this.version === null) {
-      this._ackTimeoutRegistry.clear(message);
-      this._onRead(message);
-    } else {
-      this._applyUpdate(message, this._client);
-    }
-  } else if (message.action === C.ACTIONS.ACK) {
-    this._processAckMessage(message);
-  } else if (message.action === C.ACTIONS.UPDATE || message.action === C.ACTIONS.PATCH) {
-    this._applyUpdate(message, this._client);
-  } else if (message.action === C.ACTIONS.WRITE_ACKNOWLEDGEMENT) {
-    Record._handleWriteAcknowledgements(message, this._writeCallbacks, this._client);
-  } else if (message.data[0] === C.EVENT.VERSION_EXISTS) {
-    // Otherwise it should be an error, and dealt with accordingly
-    this._recoverRecord(message.data[2], JSON.parse(message.data[3]), message);
-  } else if (message.data[0] === C.EVENT.MESSAGE_DENIED) {
-    this._clearTimeouts();
-  } else if (message.action === C.ACTIONS.SUBSCRIPTION_HAS_PROVIDER) {
-    var hasProvider = messageParser.convertTyped(message.data[1], this._client);
-    this.hasProvider = hasProvider;
-    this.emit('hasProviderChanged', hasProvider);
-  }
-};
-
-Record._handleWriteAcknowledgements = function (message, callbacks, client) {
-  var versions = JSON.parse(message.data[1]);
-  for (var i = 0; i < versions.length; i++) {
-    var callback = callbacks[versions[i]];
-    if (callback !== undefined) {
-      callback(messageParser.convertTyped(message.data[2], client));
-      delete callbacks[versions[i]];
-    }
-  }
+	//console.log('Record::_$onMessage', message);
+	if (message.action === C.ACTIONS.READ) {
+		if (this.version === null) {
+			clearTimeout(this._readTimeout);
+			this._onRead(message);
+		} else {
+			this._applyUpdate(message, this._client);
+		}
+	} else if (message.action === C.ACTIONS.ACK) {
+		this._processAckMessage(message);
+	} else if (message.action === C.ACTIONS.UPDATE || message.action === C.ACTIONS.PATCH) {
+		this._applyUpdate(message, this._client);
+	}
+	// Otherwise it should be an error, and dealt with accordingly
+	else if (message.data[0] === C.EVENT.VERSION_EXISTS) {
+			this._recoverRecord(message.data[2], JSON.parse(message.data[3]), message);
+		} else if (message.data[0] === C.EVENT.MESSAGE_DENIED) {
+			this._clearTimeouts();
+		} else if (message.action === C.ACTIONS.SUBSCRIPTION_HAS_PROVIDER) {
+			var hasProvider = messageParser.convertTyped(message.data[1], this._client);
+			this.hasProvider = hasProvider;
+			this.emit('hasProviderChanged', hasProvider);
+		}
 };
 
 /**
@@ -5104,25 +5190,23 @@ Record._handleWriteAcknowledgements = function (message, callbacks, client) {
  * @returns {void}
  */
 Record.prototype._recoverRecord = function (remoteVersion, remoteData, message) {
-  message.processedError = true;
-  if (this._mergeStrategy) {
-    this._mergeStrategy(this, remoteData, remoteVersion, this._onRecordRecovered.bind(this, remoteVersion, remoteData, message));
-  } else {
-    this.emit('error', C.EVENT.VERSION_EXISTS, 'received update for ' + remoteVersion + ' but version is ' + this.version);
-  }
+	console.log('Record.prototype._recoverRecord remoteVersion, remoteData, message', remoteVersion, remoteData, message);
+	message.processedError = true;
+	if (this._mergeStrategy) {
+		this._mergeStrategy(this, remoteData, remoteVersion, this._onRecordRecovered.bind(this, remoteVersion, remoteData));
+	} else {
+		this.emit('error', C.EVENT.VERSION_EXISTS, 'received update for ' + remoteVersion + ' but version is ' + this.version);
+	}
 };
 
-Record.prototype._sendUpdate = function (path, data, config) {
-  console.log('Record.prototype._sendUpdate path, data, config', path, data, config);
-  this.version++;
-  var msgData = void 0;
-  if (!path) {
-    msgData = config === undefined ? [this.name, this.version, data] : [this.name, this.version, data, config];
-    this._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.UPDATE, msgData);
-  } else {
-    msgData = config === undefined ? [this.name, this.version, path, messageBuilder.typed(data)] : [this.name, this.version, path, messageBuilder.typed(data), config];
-    this._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.PATCH, msgData);
-  }
+Record.prototype._sendUpdate = function (path, data) {
+	//console.log('_sendUpdate this, path, data', this, path, data);
+	this.version++;
+	if (!path) {
+		this._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.UPDATE, [this.name, this.version, data]);
+	} else {
+		this._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.PATCH, [this.name, this.version, path, messageBuilder.typed(data)]);
+	}
 };
 
 /**
@@ -5137,46 +5221,30 @@ Record.prototype._sendUpdate = function (path, data, config) {
  * @private
  * @returns {void}
  */
-Record.prototype._onRecordRecovered = function (remoteVersion, remoteData, message, error, data) {
-  console.log('Record.prototype._onRecordRecovered remoteVersion, remoteData, message, error, data', remoteVersion, remoteData, message, error, data);
-  if (!error) {
-    var oldVersion = this.version;
-    this.version = remoteVersion;
+Record.prototype._onRecordRecovered = function (remoteVersion, remoteData, error, data) {
+	console.log('_onRecordRecovered remoteVersion, remoteData, error, data', remoteVersion, remoteData, error, data);
+	if (!error) {
+		this.version = remoteVersion;
 
-    var oldValue = this._$data;
-
-    if (utils.deepEquals(oldValue, remoteData)) {
-      return;
-    }
-
-    //const newValue = jsonPath.set(oldValue, undefined, data, false)
-
-    /*
-    // TODO Uncomment and check
-    if (utils.deepEquals(data, remoteData)) {
-      this._applyChange( undefined, data, false );
-      //this._applyChange(data)
-       const callback = this._writeCallbacks[remoteVersion]
-      if (callback !== undefined) {
-        callback(null)
-        delete this._writeCallbacks[remoteVersion]
-      }
-      return
-    }
-    */
-
-    var config = message.data[4];
-    if (config && JSON.parse(config).writeSuccess) {
-      var callback = this._writeCallbacks[oldVersion];
-      delete this._writeCallbacks[oldVersion];
-      this._setUpCallback(this.version, callback);
-    }
-    this._sendUpdate(undefined, data, config);
-    this._applyChange(undefined, data, false);
-    //this._applyChange(newValue)
-  } else {
-    this.emit('error', C.EVENT.VERSION_EXISTS, 'received update for ' + remoteVersion + ' but version is ' + this.version);
+		// TODO Check if shallow copy in jsonPath.set makes this different to other calls to _applyChange
+		/*
+  var oldValue = this._$data;
+  var newValue = jsonPath.set( oldValue, undefined, data, false );
+   		//if( utils.deepEquals( newValue, remoteData ) ) {
+  	//return;
+    //}
+  	if ( oldValue === newValue ) {
+  	return;
   }
+  */
+
+		// ADDED If the merge strategy is remote wins then we should not need to bounce the update back to the server
+		if (this._mergeStrategy != this._client.MERGE_STRATEGIES.REMOTE_WINS) this._sendUpdate(undefined, data);
+		this._applyChange(undefined, data, false);
+		//this._applyChange( newValue );
+	} else {
+		this.emit('error', C.EVENT.VERSION_EXISTS, 'received update for ' + remoteVersion + ' but version is ' + this.version);
+	}
 };
 
 /**
@@ -5189,17 +5257,17 @@ Record.prototype._onRecordRecovered = function (remoteVersion, remoteData, messa
  * @returns {void}
  */
 Record.prototype._processAckMessage = function (message) {
-  var acknowledgedAction = message.data[0];
+	var acknowledgedAction = message.data[0];
 
-  if (acknowledgedAction === C.ACTIONS.SUBSCRIBE) {
-    this._ackTimeoutRegistry.clear(message);
-  } else if (acknowledgedAction === C.ACTIONS.DELETE) {
-    this.emit('delete');
-    this._destroy();
-  } else if (acknowledgedAction === C.ACTIONS.UNSUBSCRIBE) {
-    this.emit('discard');
-    this._destroy();
-  }
+	if (acknowledgedAction === C.ACTIONS.SUBSCRIBE) {
+		clearTimeout(this._readAckTimeout);
+	} else if (acknowledgedAction === C.ACTIONS.DELETE) {
+		this.emit('delete');
+		this._destroy();
+	} else if (acknowledgedAction === C.ACTIONS.UNSUBSCRIBE) {
+		this.emit('discard');
+		this._destroy();
+	}
 };
 
 /**
@@ -5211,40 +5279,38 @@ Record.prototype._processAckMessage = function (message) {
  * @returns {void}
  */
 Record.prototype._applyUpdate = function (message) {
-  console.log('Record.prototype._applyUpdate', message);
-  var version = parseInt(message.data[1], 10);
-  var data = void 0;
-  if (message.action === C.ACTIONS.PATCH) {
-    data = messageParser.convertTyped(message.data[3], this._client);
-  } else {
-    data = JSON.parse(message.data[2]);
-  }
 
-  if (this.version === null) {
-    this.version = version;
-  } else if (this.version + 1 !== version) {
-    if (message.action === C.ACTIONS.PATCH) {
-      /**
-      * Request a snapshot so that a merge can be done with the read reply which contains
-      * the full state of the record
-      **/
-      this._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.SNAPSHOT, [this.name]);
-    } else {
-      this._recoverRecord(version, data, message);
-    }
-    return;
-  }
+	//console.log('_applyUpdate message', message);
 
-  this.version = version;
-  this._applyChange(message.action === C.ACTIONS.PATCH ? message.data[2] : undefined, data, undefined);
-  /*
-  this._applyChange(
-    jsonPath.set(
-      this._$data,
-      message.action === C.ACTIONS.PATCH ? message.data[2] : undefined, data
-    )
-  )
-  */
+	var version = parseInt(message.data[1], 10);
+	var data;
+
+	if (message.action === C.ACTIONS.PATCH) {
+		data = messageParser.convertTyped(message.data[3], this._client);
+	} else {
+		data = JSON.parse(message.data[2]);
+	}
+
+	//console.log('_applyUpdate data', data);
+
+	if (this.version === null) {
+		this.version = version;
+	} else if (this.version + 1 !== version) {
+		if (message.action === C.ACTIONS.PATCH) {
+			/**
+    * Request a snapshot so that a merge can be done with the read reply which contains
+    * the full state of the record
+    **/
+			this._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.SNAPSHOT, [this.name]);
+		} else {
+			this._recoverRecord(version, data, message);
+		}
+		return;
+	}
+
+	this.version = version;
+	this._applyChange(message.action === C.ACTIONS.PATCH ? message.data[2] : undefined, data, undefined);
+	//this._applyChange( jsonPath.set( this._$data, message.action === C.ACTIONS.PATCH ? message.data[ 2 ] : undefined, data ) );
 };
 
 /**
@@ -5255,13 +5321,12 @@ Record.prototype._applyUpdate = function (message) {
  * @private
  * @returns {void}
  */
-
 Record.prototype._onRead = function (message) {
-  console.log('_onRead message', message);
-  this.version = parseInt(message.data[1], 10);
-  this._applyChange(undefined, JSON.parse(message.data[2]), undefined);
-  //this._applyChange( jsonPath.set( this._$data, undefined, JSON.parse( message.data[ 2 ] ) ) );
-  this._setReady();
+	//console.log('_onRead message', message);
+	this.version = parseInt(message.data[1], 10);
+	this._applyChange(undefined, JSON.parse(message.data[2]), undefined);
+	//this._applyChange( jsonPath.set( this._$data, undefined, JSON.parse( message.data[ 2 ] ) ) );
+	this._setReady();
 };
 
 /**
@@ -5272,17 +5337,12 @@ Record.prototype._onRead = function (message) {
  * @returns {void}
  */
 Record.prototype._setReady = function () {
-  this.isReady = true;
-  for (var i = 0; i < this._queuedMethodCalls.length; i++) {
-    this[this._queuedMethodCalls[i].method].apply(this, this._queuedMethodCalls[i].args);
-  }
-  this._queuedMethodCalls = [];
-  this.emit('ready');
-};
-
-Record.prototype._setUpCallback = function (currentVersion, callback) {
-  var newVersion = Number(this.version) + 1;
-  this._writeCallbacks[newVersion] = callback;
+	this.isReady = true;
+	for (var i = 0; i < this._queuedMethodCalls.length; i++) {
+		this[this._queuedMethodCalls[i].method].apply(this, this._queuedMethodCalls[i].args);
+	}
+	this._queuedMethodCalls = [];
+	this.emit('ready');
 };
 
 /**
@@ -5293,7 +5353,7 @@ Record.prototype._setUpCallback = function (currentVersion, callback) {
  * @returns {void}
  */
 Record.prototype._sendRead = function () {
-  this._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.CREATEORREAD, [this.name]);
+	this._connection.sendMsg(C.TOPIC.RECORD, C.ACTIONS.CREATEORREAD, [this.name]);
 };
 
 /**
@@ -5304,35 +5364,40 @@ Record.prototype._sendRead = function () {
  * @returns {void}
  */
 Record.prototype._applyChange = function (path, change, deepCopy) {
-  //Record.prototype._applyChange = function( newData ) {
-  console.log('_applyChange path change deepCopy', path, change, deepCopy);
-  if (this.isDestroyed) {
-    return;
-  }
+	//Record.prototype._applyChange = function( newData ) {
+	//console.log('_applyChange path change deepCopy', path, change, deepCopy);
+	if (this.isDestroyed) {
+		return;
+	}
 
-  if (this._model) {
-    if (path) {
-      this._model.deliverToModel(path, change);
-    } else {
-      this._model.deliverToModel(change);
-    }
-  } else {
+	if (this._model) {
+		if (path) {
+			this._model.deliverToModel(path, change);
+		} else {
+			this._model.deliverToModel(change);
+		}
+	} else {
 
-    var newData = jsonPath.set(this._$data, path, change, deepCopy);
+		var oldData = this._$data;
+		var newData = jsonPath.set(this._$data, path, change, deepCopy);
 
-    var oldData = this._$data;
-    this._$data = newData;
+		this._$data = newData;
 
-    var paths = this._eventEmitter.eventNames();
-    for (var i = 0; i < paths.length; i++) {
-      var newValue = jsonPath.get(newData, paths[i], false);
-      var oldValue = jsonPath.get(oldData, paths[i], false);
+		if (!this._eventEmitter._callbacks) {
+			return;
+		}
 
-      if (newValue !== oldValue) {
-        this._eventEmitter.emit(paths[i], this.get(paths[i]));
-      }
-    }
-  }
+		var paths = Object.keys(this._eventEmitter._callbacks);
+
+		for (var i = 0; i < paths.length; i++) {
+			var newValue = jsonPath.get(newData, paths[i], false);
+			var oldValue = jsonPath.get(oldData, paths[i], false);
+
+			if (newValue !== oldValue) {
+				this._eventEmitter.emit(paths[i], this.get(paths[i]));
+			}
+		}
+	}
 };
 
 /**
@@ -5344,25 +5409,25 @@ Record.prototype._applyChange = function (path, change, deepCopy) {
  * @returns {Object} arguments map
  */
 Record.prototype._normalizeArguments = function (args) {
-  // If arguments is already a map of normalized parameters
-  // (e.g. when called by AnonymousRecord), just return it.
-  if (args.length === 1 && _typeof(args[0]) === 'object') {
-    return args[0];
-  }
+	// If arguments is already a map of normalized parameters
+	// (e.g. when called by AnonymousRecord), just return it.
+	if (args.length === 1 && _typeof(args[0]) === 'object') {
+		return args[0];
+	}
 
-  var result = Object.create(null);
+	var result = Object.create(null);
 
-  for (var i = 0; i < args.length; i++) {
-    if (typeof args[i] === 'string') {
-      result.path = args[i];
-    } else if (typeof args[i] === 'function') {
-      result.callback = args[i];
-    } else if (typeof args[i] === 'boolean') {
-      result.triggerNow = args[i];
-    }
-  }
+	for (var i = 0; i < args.length; i++) {
+		if (typeof args[i] === 'string') {
+			result.path = args[i];
+		} else if (typeof args[i] === 'function') {
+			result.callback = args[i];
+		} else if (typeof args[i] === 'boolean') {
+			result.triggerNow = args[i];
+		}
+	}
 
-  return result;
+	return result;
 };
 
 /**
@@ -5372,10 +5437,10 @@ Record.prototype._normalizeArguments = function (args) {
  * @returns {void}
  */
 Record.prototype._clearTimeouts = function () {
-  this._ackTimeoutRegistry.remove({ ackId: this._readAckTimeout, silent: true });
-  this._ackTimeoutRegistry.remove({ ackId: this._responseTimeout, silent: true });
-  this._ackTimeoutRegistry.remove({ ackId: this._deleteAckTimeout, silent: true });
-  this._ackTimeoutRegistry.remove({ ackId: this._discardTimeout, silent: true });
+	clearTimeout(this._readAckTimeout);
+	clearTimeout(this._deleteAckTimeout);
+	clearTimeout(this._discardTimeout);
+	clearTimeout(this._deleteAckTimeout);
 };
 
 /**
@@ -5388,12 +5453,22 @@ Record.prototype._clearTimeouts = function () {
  * @returns {Boolean} is destroyed
  */
 Record.prototype._checkDestroyed = function (methodName) {
-  if (this.isDestroyed) {
-    this.emit('error', 'Can\'t invoke \'' + methodName + '\'. Record \'' + this.name + '\' is already destroyed');
-    return true;
-  }
+	if (this.isDestroyed) {
+		this.emit('error', 'Can\'t invoke \'' + methodName + '\'. Record \'' + this.name + '\' is already destroyed');
+		return true;
+	}
 
-  return false;
+	return false;
+};
+/**
+ * Generic handler for ack, read and delete timeouts
+ *
+ * @private
+ * @returns {void}
+ */
+Record.prototype._onTimeout = function (timeoutType) {
+	this._clearTimeouts();
+	this.emit('error', timeoutType);
 };
 
 /**
@@ -5404,19 +5479,19 @@ Record.prototype._checkDestroyed = function (methodName) {
  * @returns {void}
  */
 Record.prototype._destroy = function () {
-  this._clearTimeouts();
-  this._eventEmitter.off();
-  this._resubscribeNotifier.destroy();
-  this.isDestroyed = true;
-  this.isReady = false;
-  this._client = null;
-  this._eventEmitter = null;
-  this._connection = null;
+	this._clearTimeouts();
+	this._eventEmitter.off();
+	this._resubscribeNotifier.destroy();
+	this.isDestroyed = true;
+	this.isReady = false;
+	this._client = null;
+	this._eventEmitter = null;
+	this._connection = null;
 };
 
 module.exports = Record;
 
-},{"../constants/constants":11,"../message/message-builder":16,"../message/message-parser":17,"../utils/resubscribe-notifier":29,"../utils/utils":31,"./json-path":20,"component-emitter2":2}],24:[function(_dereq_,module,exports){
+},{"../constants/constants":12,"../message/message-builder":17,"../message/message-parser":18,"../utils/resubscribe-notifier":30,"../utils/utils":32,"./json-path":21,"component-emitter":2}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var C = _dereq_('../constants/constants');
@@ -5679,7 +5754,7 @@ RpcHandler.prototype._reprovide = function () {
 
 module.exports = RpcHandler;
 
-},{"../constants/constants":11,"../message/message-builder":16,"../message/message-parser":17,"../utils/resubscribe-notifier":29,"./rpc":26,"./rpc-response":25}],25:[function(_dereq_,module,exports){
+},{"../constants/constants":12,"../message/message-builder":17,"../message/message-parser":18,"../utils/resubscribe-notifier":30,"./rpc":27,"./rpc-response":26}],26:[function(_dereq_,module,exports){
 'use strict';
 
 var C = _dereq_('../constants/constants');
@@ -5790,7 +5865,7 @@ RpcResponse.prototype._performAutoAck = function () {
 
 module.exports = RpcResponse;
 
-},{"../constants/constants":11,"../message/message-builder":16,"../utils/utils":31}],26:[function(_dereq_,module,exports){
+},{"../constants/constants":12,"../message/message-builder":17,"../utils/utils":32}],27:[function(_dereq_,module,exports){
 'use strict';
 
 var C = _dereq_('../constants/constants');
@@ -5892,7 +5967,7 @@ Rpc.prototype._complete = function () {
 
 module.exports = Rpc;
 
-},{"../constants/constants":11,"../message/message-parser":17}],27:[function(_dereq_,module,exports){
+},{"../constants/constants":12,"../message/message-parser":18}],28:[function(_dereq_,module,exports){
 'use strict';
 
 var C = _dereq_('../constants/constants');
@@ -6044,7 +6119,7 @@ AckTimeoutRegistry.prototype._onConnectionStateChanged = function (connectionSta
 
 module.exports = AckTimeoutRegistry;
 
-},{"../constants/constants":11,"component-emitter2":2}],28:[function(_dereq_,module,exports){
+},{"../constants/constants":12,"component-emitter2":3}],29:[function(_dereq_,module,exports){
 'use strict';
 
 var C = _dereq_('../constants/constants');
@@ -6170,7 +6245,7 @@ Listener.prototype._sendListen = function () {
 
 module.exports = Listener;
 
-},{"../constants/constants":11,"./resubscribe-notifier":29}],29:[function(_dereq_,module,exports){
+},{"../constants/constants":12,"./resubscribe-notifier":30}],30:[function(_dereq_,module,exports){
 'use strict';
 
 var C = _dereq_('../constants/constants');
@@ -6227,7 +6302,7 @@ ResubscribeNotifier.prototype._handleConnectionStateChanges = function () {
 
 module.exports = ResubscribeNotifier;
 
-},{"../constants/constants":11}],30:[function(_dereq_,module,exports){
+},{"../constants/constants":12}],31:[function(_dereq_,module,exports){
 'use strict';
 
 var C = _dereq_('../constants/constants');
@@ -6354,7 +6429,7 @@ SingleNotifier.prototype._resendRequests = function () {
 
 module.exports = SingleNotifier;
 
-},{"../constants/constants":11,"./resubscribe-notifier":29}],31:[function(_dereq_,module,exports){
+},{"../constants/constants":12,"./resubscribe-notifier":30}],32:[function(_dereq_,module,exports){
 (function (process){
 'use strict';
 /* eslint-disable valid-typeof */
@@ -6611,5 +6686,5 @@ exports.isConnected = function (client) {
 };
 
 }).call(this,_dereq_('_process'))
-},{"../constants/constants":11,"_process":3,"url":8}]},{},[10])(10)
+},{"../constants/constants":12,"_process":4,"url":9}]},{},[11])(11)
 });

@@ -21,6 +21,6 @@ exports.DefaultOptions = {
     dirtyStorageName: '__ds__dirty_records',
     nodeStoragePath: './local-storage',
     nodeStorageSize: 5,
-    lazyConnect: false
+    lazyConnect: false,
 };
 //# sourceMappingURL=client-options.js.map

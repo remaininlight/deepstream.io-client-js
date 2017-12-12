@@ -9,11 +9,14 @@ const state_machine_1 = require("../util/state-machine");
 class RecordCore extends Emitter {
     constructor(name, services, options, recordServices, whenComplete) {
         super();
+        global.console.log('DSRecord::constructor');
         this.services = services;
         this.options = options;
         this.recordServices = recordServices;
         this.emitter = new Emitter();
         this.data = Object.create(null);
+        // ADDED
+        //this.model = options.model
         this.name = name;
         this.whenComplete = whenComplete;
         this.references = 1;
@@ -581,9 +584,16 @@ class RecordCore extends Emitter {
      * updates the subscribers if the value has changed
      */
     applyChange(newData) {
+        global.console.log('DSRecord::applyChange newData', newData);
         if (this.stateMachine.inEndState) {
             return;
         }
+        // ADDED
+        /*
+        if (this.model) {
+          global.console.log('DSRecord::applyChange this.model')
+        }
+        */
         const oldData = this.data;
         this.data = newData;
         const paths = this.emitter.eventNames();

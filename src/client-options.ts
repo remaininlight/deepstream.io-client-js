@@ -99,6 +99,8 @@ export interface Options {
      * blbalbla
      */
     lazyConnect: boolean
+    
+    model: any
 }
 
 export const DefaultOptions: Options = {
@@ -121,5 +123,6 @@ export const DefaultOptions: Options = {
     dirtyStorageName: '__ds__dirty_records',
     nodeStoragePath: './local-storage',
     nodeStorageSize: 5,
-    lazyConnect: false
+    lazyConnect: false,
+    //model: 'test'
 }

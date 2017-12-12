@@ -49,6 +49,7 @@ export class RecordCore extends Emitter {
   private recordServices: RecordServices
   private emitter: Emitter
   private data: object
+  //private model: any
   private stateMachine: StateMachine
   private responseTimeout: number
   private discardTimeout: number
@@ -62,11 +63,14 @@ export class RecordCore extends Emitter {
 
   constructor (name: string, services: Services, options: Options, recordServices: RecordServices, whenComplete: (recordName: string) => void) {
     super()
+    global.console.log('DSRecord::constructor')
     this.services = services
     this.options = options
     this.recordServices = recordServices
     this.emitter = new Emitter()
     this.data = Object.create(null)
+    // ADDED
+    //this.model = options.model
     this.name = name
     this.whenComplete = whenComplete
     this.references = 1
@@ -686,10 +690,20 @@ export class RecordCore extends Emitter {
    * updates the subscribers if the value has changed
    */
   private applyChange (newData: any) {
+
+    global.console.log('DSRecord::applyChange newData', newData)
+    
     if (this.stateMachine.inEndState) {
       return
     }
 
+    // ADDED
+    /*
+    if (this.model) {
+      global.console.log('DSRecord::applyChange this.model')
+    }
+    */
+    
     const oldData = this.data
     this.data = newData
 

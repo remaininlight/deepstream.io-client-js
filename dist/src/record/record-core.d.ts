@@ -33,6 +33,7 @@ export declare class RecordCore extends Emitter {
     private recordServices;
     private emitter;
     private data;
+    private model;
     private stateMachine;
     private responseTimeout;
     private discardTimeout;

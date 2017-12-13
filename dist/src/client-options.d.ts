@@ -95,6 +95,5 @@ export interface Options {
      * blbalbla
      */
     lazyConnect: boolean;
-    model: any;
 }
 export declare const DefaultOptions: Options;

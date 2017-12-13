@@ -9,7 +9,7 @@ const state_machine_1 = require("../util/state-machine");
 class RecordCore extends Emitter {
     constructor(name, services, options, recordServices, whenComplete) {
         super();
-        global.console.log('DSRecord::constructor');
+        global.console.log('DSRecord::constructor hello!');
         this.services = services;
         this.options = options;
         this.recordServices = recordServices;

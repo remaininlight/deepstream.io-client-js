@@ -63,7 +63,7 @@ export class RecordCore extends Emitter {
 
   constructor (name: string, services: Services, options: Options, recordServices: RecordServices, whenComplete: (recordName: string) => void) {
     super()
-    global.console.log('DSRecord::constructor')
+    global.console.log('DSRecord::constructor hello!')
     this.services = services
     this.options = options
     this.recordServices = recordServices

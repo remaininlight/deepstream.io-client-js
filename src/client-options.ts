@@ -100,7 +100,7 @@ export interface Options {
      */
     lazyConnect: boolean
     
-    model: any
+    //model: any
 }
 
 export const DefaultOptions: Options = {

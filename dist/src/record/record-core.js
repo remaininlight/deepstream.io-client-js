@@ -16,7 +16,8 @@ class RecordCore extends Emitter {
         this.emitter = new Emitter();
         this.data = Object.create(null);
         // ADDED
-        //this.model = options.model
+        this.model = options.model;
+        global.console.log('DSRecord::constructor options.model', options.model);
         this.name = name;
         this.whenComplete = whenComplete;
         this.references = 1;
@@ -130,15 +131,18 @@ class RecordCore extends Emitter {
             // TODO
             return;
         }
-        const oldValue = this.data;
-        const newValue = json_path_1.setValue(oldValue, path || null, data);
-        if (oldValue === newValue) {
-            if (callback) {
-                this.services.timerRegistry.requestIdleCallback(() => callback(null, this.name));
+        // ADDED If there is a model then it should already have been updated
+        if (!this.model) {
+            const oldValue = this.data;
+            const newValue = json_path_1.setValue(oldValue, path || null, data);
+            if (oldValue === newValue) {
+                if (callback) {
+                    this.services.timerRegistry.requestIdleCallback(() => callback(null, this.name));
+                }
+                return;
             }
-            return;
+            this.applyChange(newValue);
         }
-        this.applyChange(newValue);
         if (this.services.connection.isConnected) {
             this.sendUpdate(path, data, callback);
         }
@@ -584,24 +588,25 @@ class RecordCore extends Emitter {
      * updates the subscribers if the value has changed
      */
     applyChange(newData) {
-        global.console.log('DSRecord::applyChange newData', newData);
         if (this.stateMachine.inEndState) {
             return;
         }
         // ADDED
-        /*
         if (this.model) {
-          global.console.log('DSRecord::applyChange this.model')
+            global.console.log('DSRecord::applyChange this.model newData', newData);
+            this.model.deliverToModel(newData);
         }
-        */
-        const oldData = this.data;
-        this.data = newData;
-        const paths = this.emitter.eventNames();
-        for (let i = 0; i < paths.length; i++) {
-            const newValue = json_path_1.get(newData, paths[i], false);
-            const oldValue = json_path_1.get(oldData, paths[i], false);
-            if (newValue !== oldValue) {
-                this.emitter.emit(paths[i], this.get(paths[i]));
+        else {
+            global.console.log('DSRecord::applyChange !this.model newData', newData);
+            const oldData = this.data;
+            this.data = newData;
+            const paths = this.emitter.eventNames();
+            for (let i = 0; i < paths.length; i++) {
+                const newValue = json_path_1.get(newData, paths[i], false);
+                const oldValue = json_path_1.get(oldData, paths[i], false);
+                if (newValue !== oldValue) {
+                    this.emitter.emit(paths[i], this.get(paths[i]));
+                }
             }
         }
     }

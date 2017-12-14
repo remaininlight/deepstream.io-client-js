@@ -100,7 +100,7 @@ export interface Options {
      */
     lazyConnect: boolean
     
-    //model: any
+    model: any
 }
 
 export const DefaultOptions: Options = {
@@ -124,5 +124,5 @@ export const DefaultOptions: Options = {
     nodeStoragePath: './local-storage',
     nodeStorageSize: 5,
     lazyConnect: false,
-    //model: 'test'
+    model: false
 }

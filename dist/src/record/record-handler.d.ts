@@ -32,7 +32,7 @@ export declare class RecordHandler {
    *
    * @param   {String} name              the unique name of the record
    */
-    getRecord(name: string): Record;
+    getRecord(name: string, model?: boolean): Record;
     /**
      * Returns an existing List or creates a new one. A list is a specialised
      * type of record that holds an array of recordNames.
@@ -136,7 +136,7 @@ export declare class RecordHandler {
      * the registry
      */
     private removeRecord(recordName);
-    private getRecordCore(recordName);
+    private getRecordCore(recordName, model?);
     private syncDirtyRecords();
     private sendUpdatedData(recordName, version, data);
     private onRecordUpdated(error, recordName);

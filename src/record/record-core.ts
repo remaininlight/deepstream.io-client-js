@@ -49,7 +49,7 @@ export class RecordCore extends Emitter {
   private recordServices: RecordServices
   private emitter: Emitter
   private data: object
-  //private model: any
+  private model: any
   private stateMachine: StateMachine
   private responseTimeout: number
   private discardTimeout: number
@@ -70,7 +70,8 @@ export class RecordCore extends Emitter {
     this.emitter = new Emitter()
     this.data = Object.create(null)
     // ADDED
-    //this.model = options.model
+    this.model = options.model
+    global.console.log('DSRecord::constructor options.model', options.model)
     this.name = name
     this.whenComplete = whenComplete
     this.references = 1
@@ -197,17 +198,21 @@ export class RecordCore extends Emitter {
       return
     }
 
-    const oldValue = this.data
-    const newValue = setPath(oldValue, path || null, data)
+    // ADDED If there is a model then it should already have been updated
+    if (!this.model) {
+      
+      const oldValue = this.data
+      const newValue = setPath(oldValue, path || null, data)
 
-    if (oldValue === newValue) {
-      if (callback) {
-        this.services.timerRegistry.requestIdleCallback(() => callback(null, this.name))
+      if (oldValue === newValue) {
+        if (callback) {
+          this.services.timerRegistry.requestIdleCallback(() => callback(null, this.name))
+        }
+        return
       }
-      return
-    }
 
-    this.applyChange(newValue)
+      this.applyChange(newValue)
+    }
 
     if (this.services.connection.isConnected) {
       this.sendUpdate(path, data, callback)
@@ -691,29 +696,30 @@ export class RecordCore extends Emitter {
    */
   private applyChange (newData: any) {
 
-    global.console.log('DSRecord::applyChange newData', newData)
-    
     if (this.stateMachine.inEndState) {
       return
     }
 
     // ADDED
-    /*
     if (this.model) {
-      global.console.log('DSRecord::applyChange this.model')
-    }
-    */
-    
-    const oldData = this.data
-    this.data = newData
 
-    const paths = this.emitter.eventNames()
-    for (let i = 0; i < paths.length; i++) {
-      const newValue = getPath(newData, paths[i], false)
-      const oldValue = getPath(oldData, paths[i], false)
+        global.console.log('DSRecord::applyChange this.model newData', newData)
+        this.model.deliverToModel(newData);
+    } else {
 
-      if (newValue !== oldValue) {
-        this.emitter.emit(paths[i], this.get(paths[i]))
+      global.console.log('DSRecord::applyChange !this.model newData', newData)
+      
+      const oldData = this.data
+      this.data = newData
+
+      const paths = this.emitter.eventNames()
+      for (let i = 0; i < paths.length; i++) {
+        const newValue = getPath(newData, paths[i], false)
+        const oldValue = getPath(oldData, paths[i], false)
+
+        if (newValue !== oldValue) {
+          this.emitter.emit(paths[i], this.get(paths[i]))
+        }
       }
     }
   }

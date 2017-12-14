@@ -56,8 +56,8 @@ class RecordHandler {
    *
    * @param   {String} name              the unique name of the record
    */
-    getRecord(name) {
-        return new record_1.Record(this.getRecordCore(name));
+    getRecord(name, model = false) {
+        return new record_1.Record(this.getRecordCore(name, model));
     }
     /**
      * Returns an existing List or creates a new one. A list is a specialised
@@ -296,9 +296,10 @@ class RecordHandler {
     removeRecord(recordName) {
         this.recordCores.delete(recordName);
     }
-    getRecordCore(recordName) {
+    getRecordCore(recordName, model = false) {
         let recordCore = this.recordCores.get(recordName);
         if (!recordCore) {
+            this.options.model = model;
             recordCore = new record_core_1.RecordCore(recordName, this.services, this.options, this.recordServices, this.removeRecord.bind(this));
             this.recordCores.set(recordName, recordCore);
         }

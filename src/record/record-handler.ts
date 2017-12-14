@@ -78,8 +78,8 @@ export class RecordHandler {
  *
  * @param   {String} name              the unique name of the record
  */
-  public getRecord (name: string): Record {
-    return new Record(this.getRecordCore(name))
+  public getRecord (name: string, model=false): Record {
+    return new Record(this.getRecordCore(name, model))
   }
 
   /**
@@ -405,9 +405,10 @@ export class RecordHandler {
     this.recordCores.delete(recordName)
   }
 
-  private getRecordCore (recordName: string): RecordCore {
+  private getRecordCore (recordName: string, model=false): RecordCore {
     let recordCore = this.recordCores.get(recordName)
     if (!recordCore) {
+      this.options.model = model
       recordCore = new RecordCore(recordName, this.services, this.options, this.recordServices, this.removeRecord.bind(this))
       this.recordCores.set(recordName, recordCore)
     } else {

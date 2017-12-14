@@ -22,5 +22,6 @@ exports.DefaultOptions = {
     nodeStoragePath: './local-storage',
     nodeStorageSize: 5,
     lazyConnect: false,
+    model: false
 };
 //# sourceMappingURL=client-options.js.map

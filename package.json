@@ -8,7 +8,7 @@
     "realtime",
     "client"
   ],
-  "main": "dist/deepstream.js",
+  "main": "dist/src/deepstream.js",
   "types": "dist/src/client.d.ts",
   "directories": {
     "test": "test"

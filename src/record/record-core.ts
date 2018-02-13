@@ -63,7 +63,7 @@ export class RecordCore extends Emitter {
 
   constructor (name: string, services: Services, options: Options, recordServices: RecordServices, whenComplete: (recordName: string) => void) {
     super()
-    global.console.log('DSRecord::constructor hello!')
+    //global.console.log('DSRecord::constructor hello!')
     this.services = services
     this.options = options
     this.recordServices = recordServices
@@ -71,7 +71,7 @@ export class RecordCore extends Emitter {
     this.data = Object.create(null)
     // ADDED
     this.model = options.model
-    global.console.log('DSRecord::constructor options.model', options.model)
+    //global.console.log('DSRecord::constructor options.model', options.model)
     this.name = name
     this.whenComplete = whenComplete
     this.references = 1
@@ -703,11 +703,11 @@ export class RecordCore extends Emitter {
     // ADDED
     if (this.model) {
 
-        global.console.log('DSRecord::applyChange this.model newData', newData)
-        this.model.deliverToModel(newData);
+        //global.console.log('DSRecord::applyChange this.model newData', newData)
+        this.model.deliver(newData);
     } else {
 
-      global.console.log('DSRecord::applyChange !this.model newData', newData)
+      //global.console.log('DSRecord::applyChange !this.model newData', newData)
       
       const oldData = this.data
       this.data = newData

@@ -556,20 +556,21 @@ class RecordCore extends Emitter {
         if (this.version === null) {
             this.version = version;
         }
-        else if (this.version + 1 !== version) {
-            this.stateMachine.transition(5 /* INVALID_VERSION */);
-            if (message.action === message_constants_1.RECORD_ACTIONS.PATCH) {
-                /**
-                * Request a snapshot so that a merge can be done with the read reply which contains
-                * the full state of the record
-                **/
-                this.sendRead();
-            }
-            else {
-                this.recoverRecord(message.version, message.parsedData, message);
-            }
-            return;
-        }
+        // TODO Uncomment. Commented to stop beta going strange
+        /*else if (this.version + 1 !== version) {
+          this.stateMachine.transition(RECORD_OFFLINE_ACTIONS.INVALID_VERSION)
+          if (message.action === RA.PATCH) {
+            /**
+            * Request a snapshot so that a merge can be done with the read reply which contains
+            * the full state of the record
+            **/ /*
+        this.sendRead()
+      } else {
+        this.recoverRecord(message.version, message.parsedData, message)
+      }
+      return
+    }
+    */
         this.version = version;
         let newData;
         if (message.action === message_constants_1.RECORD_ACTIONS.PATCH) {

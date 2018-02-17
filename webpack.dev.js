@@ -21,9 +21,7 @@ module.exports = {
   plugins: [
     // new webpack.IgnorePlugin(/ws/),
   ],
-    /*
   node: {
     fs: 'empty'
   }
-    */
 };

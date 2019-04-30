@@ -707,7 +707,8 @@ export class RecordCore extends Emitter {
     if (this.model) {
 
         //global.console.log('DSRecord::applyChange this.model newData', newData)
-        this.model.deliver(newData);
+        //this.model.deliver(newData);
+        this.model.deliverToModel(newData);
     } else {
 
       //global.console.log('DSRecord::applyChange !this.model newData', newData)
